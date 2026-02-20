@@ -4,111 +4,156 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#004a99">
-<title>BPPTPL Site Tracker Pro</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<title>BPPTPL Chainage Finder</title>
 <style>
-:root{ --bppt-blue: #004a99; --bppt-green: #28a745; --orange: #FF8C00; --bg: #f4f7f6; }
+:root{
+    --bppt-blue: #004a99;
+    --bppt-green: #28a745;
+    --safety-orange: #FF8C00;
+    --bg: #f4f7f6;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{color:#1f2937; font-family:sans-serif; background:var(--bg); display:flex; flex-direction:column; height:100dvh; overflow:hidden;}
+body{
+    color: #1f2937;
+    font-family: -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+}
 
+/* HORIZONTAL CENTERED HEADER */
 header {
-    background:white; padding:12px; border-bottom:4px solid var(--bppt-blue);
-    display:flex; flex-direction:row; align-items:center; justify-content:center; gap:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); flex-shrink:0;
+    background: white;
+    padding: 15px 16px;
+    border-bottom: 4px solid var(--bppt-blue);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-shrink: 0;
 }
-.logo { height:45px; width:auto; }
-.header-text h1 { margin:0; font-size:13px; color:var(--bppt-blue); text-transform:uppercase; }
-.header-text p { margin:0; font-size:10px; color:var(--bppt-green); font-weight:bold; }
+.logo { height: 45px; width: auto; }
+.header-text { text-align: left; }
+.header-text h1 { margin: 0; font-size: 13px; color: var(--bppt-blue); text-transform: uppercase; line-height: 1.2; }
+.header-text p { margin: 2px 0 0 0; font-size: 10px; color: var(--bppt-green); font-weight: bold; letter-spacing: 0.5px; }
 
-.scroll-area { flex:1; overflow-y:auto; padding:15px; padding-bottom:80px; }
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
 
+/* BIG CHAINAGE DISPLAY */
 .ch-card {
-    background:white; border:1px solid #ddd; border-radius:20px; padding:25px 10px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.05); margin-bottom:15px;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    width: 100%;
+    padding: 40px 15px;
+    text-align: center;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
 }
-.label { font-size:10px; letter-spacing:2px; color:#666; margin-bottom:10px; font-weight:bold; text-transform:uppercase; }
-#chValue { font-size:14vw; font-weight:900; color:var(--orange); font-family:monospace; }
+.label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #6b7280;
+    margin-bottom: 15px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+#chValue {
+    font-size: 14vw;
+    font-weight: 900;
+    color: var(--safety-orange);
+    font-family: 'Courier New', Courier, monospace;
+    white-space: nowrap;
+}
 
-.section-card { background:#eef2ff; border:1px solid #c7d2fe; border-radius:15px; padding:12px; margin-bottom:15px; display:none; }
-.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px; }
-.ibox { background:white; border:1px solid #ddd; padding:8px; border-radius:10px; text-align:center; }
-.ibox-lbl { font-size:8px; color:#888; font-weight:bold; }
-.ibox-val { font-size:11px; font-weight:bold; color:var(--bppt-blue); }
+/* SECTION INFO CARD */
+.section-card {
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 15px;
+    padding: 15px;
+    width: 100%;
+    margin-bottom: 20px;
+    display: none;
+}
+.sec-title { font-size: 14px; font-weight: 800; color: var(--bppt-blue); border-bottom: 1px solid #c7d2fe; padding-bottom: 5px; margin-bottom: 10px; text-align: center; }
+.sec-detail { font-size: 13px; margin: 4px 0; }
+.sec-phone { color: var(--bppt-blue); text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; margin-top: 5px; }
 
-.btn { width:100%; padding:16px; border-radius:12px; border:none; font-size:13px; font-weight:bold; text-transform:uppercase; cursor:pointer; margin-bottom:10px; }
-.btn-primary { background:var(--bppt-blue); color:white; }
-.btn-stop { background:#ef4444; color:white; }
-.btn-camera { background:#374151; color:white; }
+.btn {
+    width: 100%;
+    padding: 18px;
+    border-radius: 15px;
+    border: none;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.btn-primary { background: var(--bppt-blue); color: white; }
+.btn-stop { background: #ef4444; color: white; }
 
-.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding:20px; }
-.modal-content { background:white; width:100%; max-width:400px; border-radius:20px; padding:20px; }
-.side-selector { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:15px; }
-.side-btn { padding:12px; border:1px solid #ddd; border-radius:8px; font-size:12px; cursor:pointer; text-align:center; font-weight:bold; }
-.side-btn.active { background:var(--bppt-blue); color:white; border-color:var(--bppt-blue); }
-
-footer { position:fixed; bottom:0; width:100%; padding:10px; background:white; text-align:center; border-top:1px solid #eee; font-size:11px; }
-#cameraInput, #canvasHelper { display:none; }
+footer {
+    padding: 15px;
+    background: white;
+    text-align: center;
+    border-top: 1px solid #e5e7eb;
+    font-size: 12px;
+    color: #4b5563;
+}
 </style>
 </head>
-<body onload="checkUser()">
+<body>
 
 <header>
-    <img src="1000678935.png" alt="Logo" class="logo" id="mainLogo">
+    <img src="1000678935.png" alt="Logo" class="logo">
     <div class="header-text">
         <h1>Beawar Pali Pindwara Tollway</h1>
         <p>MAINTENANCE DEPARTMENT</p>
     </div>
 </header>
 
-<div class="scroll-area">
+<div class="main-content">
     <div class="ch-card">
         <div class="label">Current Chainage</div>
         <div id="chValue">--+---</div>
     </div>
 
     <div class="section-card" id="sectionCard">
-        <div style="font-weight:bold; color:var(--bppt-blue); margin-bottom:5px;" id="secTitle">SECTION --</div>
-        <div style="font-size:12px">In-charge: <strong id="secName">--</strong></div>
-        <div id="secPhone" style="font-size:13px; font-weight:bold; margin-top:5px;">&#9742; --</div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="ibox"><div class="ibox-lbl">LATITUDE</div><div class="ibox-val" id="infoLat">--</div></div>
-        <div class="ibox"><div class="ibox-lbl">LONGITUDE</div><div class="ibox-val" id="infoLon">--</div></div>
+        <div class="sec-title" id="secTitle">SECTION --</div>
+        <div class="sec-detail">In-charge: <strong id="secName">--</strong></div>
+        <a href="" class="sec-phone" id="secLink">
+            <span>&#9742;</span> <span id="secPhone">--</span>
+        </a>
     </div>
 
     <button class="btn btn-primary" id="btnTrack" onclick="toggleTracking()">Want Your Chainage Click Me</button>
-    <input type="file" accept="image/*" capture="camera" id="cameraInput" onchange="openAnnotationModal(event)">
-    <button class="btn btn-camera" id="btnCamera" onclick="triggerCamera()" disabled>📷 Capture Site Photo</button>
-    <button class="btn" style="background:var(--bppt-green); color:white;" onclick="generatePDF()">📄 Visit Summary PDF</button>
 </div>
 
-<div class="modal" id="annotationModal">
-    <div class="modal-content">
-        <h3 style="margin-bottom:15px; text-align:center;">Site Details</h3>
-        <div class="side-selector">
-            <div class="side-btn" onclick="selectSide('LHS', this)">LHS</div>
-            <div class="side-btn" onclick="selectSide('RHS', this)">RHS</div>
-            <div class="side-btn" onclick="selectSide('Median', this)">Median</div>
-        </div>
-        <input type="text" id="customNote" placeholder="Enter note (e.g. Guardrail damage)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
-        <button class="btn btn-primary" id="btnFinalSave" onclick="finishImageProcessing()">Save Photo</button>
-    </div>
-</div>
-
-<div class="modal" id="userModal">
-    <div class="modal-content">
-        <h3 style="margin-bottom:15px; text-align:center;">User Setup</h3>
-        <input type="text" id="userName" placeholder="Your Full Name" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-        <input type="text" id="userDesig" placeholder="Designation" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
-        <button class="btn btn-primary" onclick="saveUser()">Save & Start</button>
-    </div>
-</div>
-
-<footer id="appFooter">Prepared by - --</footer>
-<canvas id="canvasHelper"></canvas>
+<footer>
+    Prepared by - <strong>Mukesh Kumar Kollepara</strong> (Sr.Manager)
+</footer>
 
 <script>
-// --- PASTE YOUR 4889 POINTS HERE ---
-const CHAIN_PTS=[ ["0+000",26.0617792,74.2991350], ["244+354",24.7800582,73.0298757] ];
+// PASTE YOUR FULL 4889 POINTS HERE
+const CHAIN_PTS=[
+["0+000",26.0617792,74.2991350],
+["0+050",26.0619805,74.2986852],
+// ...
+["244+354",24.7800582,73.0298757]
+];
 
 const SECTION_DATA = {
     1: { name: "Mr. Sachin Gupta", phone: "8506878948" },
@@ -117,129 +162,50 @@ const SECTION_DATA = {
     4: { name: "Mr. Bhagwat Rathore", phone: "8619494508" }
 };
 
-let isTracking = false, watchId = null, currentCH = "--+---", currentLat = "", currentLon = "", selectedSide = "N/A", pendingImageData = null;
-let visitLogs = [], userProfile = { name: "", desig: "" };
+let isTracking = false, watchId = null;
 
-function checkUser() {
-    const saved = localStorage.getItem("bpptpl_user");
-    if(saved) { userProfile = JSON.parse(saved); updateFooter(); } 
-    else { document.getElementById("userModal").style.display = "flex"; }
-}
-function saveUser() {
-    userProfile.name = document.getElementById("userName").value;
-    userProfile.desig = document.getElementById("userDesig").value;
-    if(!userProfile.name) return alert("Enter Name");
-    localStorage.setItem("bpptpl_user", JSON.stringify(userProfile));
-    document.getElementById("userModal").style.display = "none";
-    updateFooter();
-}
-function updateFooter() { document.getElementById("appFooter").innerHTML = `Prepared by - <strong>${userProfile.name}</strong> (${userProfile.desig})`; }
-
-// ROCK SOLID CHAINAGE LOGIC
 function toggleTracking() {
     const btn = document.getElementById("btnTrack");
     if (isTracking) {
-        navigator.geolocation.clearWatch(watchId); isTracking = false;
-        btn.textContent = "Want Your Chainage Click Me"; btn.className = "btn btn-primary";
-        document.getElementById("btnCamera").disabled = true;
+        navigator.geolocation.clearWatch(watchId);
+        isTracking = false;
+        btn.textContent = "Want Your Chainage Click Me";
+        btn.className = "btn btn-primary";
+        document.getElementById("sectionCard").style.display = "none";
     } else {
         isTracking = true;
-        btn.textContent = "Stop Tracking"; btn.className = "btn btn-stop";
-        document.getElementById("btnCamera").disabled = false;
+        btn.textContent = "Stop Tracking";
+        btn.className = "btn btn-stop";
         watchId = navigator.geolocation.watchPosition(pos => {
-            currentLat = pos.coords.latitude.toFixed(6);
-            currentLon = pos.coords.longitude.toFixed(6);
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
             
-            // FAST LOOKUP
             let minD = Infinity;
-            for (let pt of CHAIN_PTS) {
-                let d = Math.sqrt(Math.pow(pos.coords.latitude - pt[1], 2) + Math.pow(pos.coords.longitude - pt[2], 2));
-                if (d < minD) { minD = d; currentCH = pt[0]; }
+            let nearestTag = "--+---";
+
+            // Simple fast Pythagorean lookup for speed
+            for (let i = 0; i < CHAIN_PTS.length; i++) {
+                let d = Math.sqrt(Math.pow(lat - CHAIN_PTS[i][1], 2) + Math.pow(lon - CHAIN_PTS[i][2], 2));
+                if (d < minD) {
+                    minD = d;
+                    nearestTag = CHAIN_PTS[i][0];
+                }
             }
-            document.getElementById("chValue").textContent = currentCH;
-            document.getElementById("infoLat").textContent = currentLat;
-            document.getElementById("infoLon").textContent = currentLon;
+
+            document.getElementById("chValue").textContent = nearestTag;
             
-            // SECTION UPDATE
-            const km = parseInt(currentCH.split('+')[0]);
+            // Section Logic
+            const km = parseInt(nearestTag.split('+')[0]);
             let sNum = km >= 180 ? 4 : km >= 120 ? 3 : km >= 60 ? 2 : 1;
-            const sData = SECTION_DATA[sNum];
+            const data = SECTION_DATA[sNum];
             document.getElementById("sectionCard").style.display = "block";
             document.getElementById("secTitle").textContent = "SECTION " + sNum;
-            document.getElementById("secName").textContent = sData.name;
-            document.getElementById("secPhone").textContent = "\u260E " + sData.phone;
+            document.getElementById("secName").textContent = data.name;
+            document.getElementById("secPhone").textContent = data.phone;
+            document.getElementById("secLink").href = "tel:" + data.phone;
+
         }, null, {enableHighAccuracy: true});
     }
-}
-
-// MEMORY-SAFE CAMERA LOGIC
-function triggerCamera() { document.getElementById("cameraInput").click(); }
-function selectSide(side, el) { 
-    selectedSide = side; 
-    document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-}
-function openAnnotationModal(e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (event) => { pendingImageData = event.target.result; document.getElementById("annotationModal").style.display = "flex"; };
-    reader.readAsDataURL(file);
-}
-
-function finishImageProcessing() {
-    const btn = document.getElementById("btnFinalSave");
-    btn.disabled = true; btn.textContent = "Processing...";
-    const note = document.getElementById("customNote").value || "N/A";
-    const ts = new Date().toLocaleString();
-    
-    const img = new Image();
-    img.onload = function() {
-        const canvas = document.getElementById("canvasHelper");
-        const ctx = canvas.getContext("2d");
-        
-        // LIMIT SIZE TO PREVENT CRASH
-        const scale = Math.min(1.0, 1600 / img.width);
-        canvas.width = img.width * scale; canvas.height = img.height * scale;
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
-        const h = canvas.height; const w = canvas.width; const f = Math.floor(w / 30);
-        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, h-(f*5), w, f*5);
-        ctx.fillStyle = "white"; ctx.font = `bold ${f}px Arial`;
-        ctx.fillText(`CH: ${currentCH} (${selectedSide})`, 20, h-(f*3.2));
-        ctx.font = `${f*0.7}px Arial`;
-        ctx.fillText(`Note: ${note} | GPS: ${currentLat}, ${currentLon}`, 20, h-(f*2.0));
-        ctx.fillText(`By: ${userProfile.name} | ${ts}`, 20, h-(f*0.8));
-
-        const logoImg = document.getElementById("mainLogo");
-        const lW = w * 0.12; const lH = (logoImg.naturalHeight/logoImg.naturalWidth)*lW;
-        ctx.drawImage(logoImg, w-lW-20, 20, lW, lH);
-
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
-        const link = document.createElement('a');
-        link.download = `Site_${currentCH.replace('+','_')}.jpg`;
-        link.href = dataUrl;
-        link.click();
-
-        visitLogs.push({ ch: currentCH, side: selectedSide, note: note, lat: currentLat, lon: currentLon, time: ts });
-        document.getElementById("annotationModal").style.display = "none";
-        document.getElementById("customNote").value = "";
-        btn.disabled = false; btn.textContent = "Save Photo";
-    };
-    img.src = pendingImageData;
-}
-
-function generatePDF() {
-    if (visitLogs.length === 0) return alert("No logs recorded");
-    const { jsPDF } = window.jspdf; const doc = new jsPDF();
-    doc.text("BPPTPL VISIT SUMMARY", 14, 20);
-    doc.setFontSize(10); doc.text(`By: ${userProfile.name} | Date: ${new Date().toLocaleDateString()}`, 14, 28);
-    let y = 40;
-    visitLogs.forEach((l, i) => {
-        if(y > 270) { doc.addPage(); y = 20; }
-        doc.text(`${i+1}. CH: ${l.ch} (${l.side}) | Note: ${l.note}`, 14, y);
-        y += 10;
-    });
-    doc.save(`Summary_${userProfile.name}.pdf`);
 }
 </script>
 </body>
