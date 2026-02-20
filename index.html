@@ -4,14 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#004a99">
-<title>BPPTPL Site Tracker</title>
+<title>BPPTPL Site Tracker Pro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{
-    --bppt-blue: #004a99;
-    --bppt-green: #28a745;
-    --safety-orange: #FF8C00;
-    --bg: #f4f7f6;
-}
+:root{ --bppt-blue: #004a99; --bppt-green: #28a745; --safety-orange: #FF8C00; --bg: #f4f7f6; }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{color: #1f2937; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; height: 100dvh;}
 
@@ -29,7 +25,7 @@ header {
     background: white; border: 1px solid #d1d5db; border-radius: 20px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px;
 }
 .label { font-size: 11px; letter-spacing: 2px; color: #6b7280; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; }
-#chValue { font-size: 14vw; font-weight: 900; color: var(--safety-orange); font-family: 'Courier New', Courier, monospace; }
+#chValue { font-size: 14vw; font-weight: 900; color: var(--safety-orange); font-family: monospace; }
 
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
 .ibox { background: white; border: 1px solid #d1d5db; padding: 8px; border-radius: 10px; text-align: center; }
@@ -40,15 +36,14 @@ header {
 .btn-primary { background: var(--bppt-blue); color: white; }
 .btn-stop { background: #ef4444; color: white; }
 .btn-camera { background: #374151; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.btn-pdf { background: var(--bppt-green); color: white; margin-top: 10px; }
 
-/* MODAL STYLES */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
 .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 20px; }
-.modal-h2 { font-size: 16px; margin-bottom: 15px; color: var(--bppt-blue); text-align: center; }
 .side-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.side-btn { padding: 10px; border: 2px solid #ddd; border-radius: 10px; background: #f9f9f9; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center;}
+.side-btn { padding: 10px; border: 2px solid #ddd; border-radius: 10px; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center;}
 .side-btn.active { border-color: var(--bppt-blue); background: #eef2ff; color: var(--bppt-blue); }
-.note-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; font-size: 14px; }
+.note-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
 
 footer { padding: 12px; background: white; text-align: center; border-top: 1px solid #e5e7eb; font-size: 11px; }
 #cameraInput, #canvasHelper { display: none; }
@@ -78,18 +73,18 @@ footer { padding: 12px; background: white; text-align: center; border-top: 1px s
     <button class="btn btn-primary" id="btnTrack" onclick="toggleTracking()">Want Your Chainage Click Me</button>
     <input type="file" accept="image/*" capture="camera" id="cameraInput" onchange="openAnnotationModal(event)">
     <button class="btn btn-camera" id="btnCamera" onclick="triggerCamera()" disabled>📷 Capture Site Photo</button>
+    <button class="btn btn-pdf" id="btnSummary" onclick="generatePDF()">📄 Generate Visit Summary</button>
 </div>
 
 <div class="modal" id="annotationModal">
     <div class="modal-content">
-        <h2 class="modal-h2">Add Site Details</h2>
-        <div class="label" style="margin-bottom:5px">Select Side</div>
+        <h2 style="font-size:16px; margin-bottom:15px; text-align:center;">Add Site Details</h2>
         <div class="side-selector">
             <div class="side-btn" onclick="selectSide('LHS', this)">LHS</div>
             <div class="side-btn" onclick="selectSide('RHS', this)">RHS</div>
             <div class="side-btn" onclick="selectSide('Median', this)">Median</div>
         </div>
-        <input type="text" class="note-input" id="customNote" placeholder="Enter note (e.g. Culvert cleaning)">
+        <input type="text" class="note-input" id="customNote" placeholder="Enter note (e.g. Crack in BC)">
         <button class="btn btn-primary" onclick="finishImageProcessing()">Save & Download</button>
     </div>
 </div>
@@ -102,6 +97,7 @@ footer { padding: 12px; background: white; text-align: center; border-top: 1px s
 const CHAIN_PTS=[ ["0+000",26.0617792,74.2991350], ["244+354",24.7800582,73.0298757] ];
 
 let isTracking = false, watchId = null, currentCH = "--+---", currentLat = "", currentLon = "", selectedSide = "", pendingImageData = null;
+let visitLogs = []; // Stores data for the report
 
 function triggerCamera() { document.getElementById("cameraInput").click(); }
 
@@ -120,7 +116,9 @@ function selectSide(side, el) {
 }
 
 function finishImageProcessing() {
-    const note = document.getElementById("customNote").value;
+    const note = document.getElementById("customNote").value || "N/A";
+    visitLogs.push({ ch: currentCH, side: selectedSide, note: note, lat: currentLat, lon: currentLon, time: new Date().toLocaleTimeString() });
+    
     const img = new Image();
     img.onload = function() {
         const canvas = document.getElementById("canvasHelper");
@@ -128,33 +126,45 @@ function finishImageProcessing() {
         canvas.width = img.width; canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
 
-        const fontSize = Math.floor(canvas.width / 28);
+        const fSize = Math.floor(canvas.width / 28);
         ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-        ctx.fillRect(0, canvas.height - (fontSize * 5), canvas.width, fontSize * 5);
-
-        ctx.fillStyle = "white";
-        ctx.font = `bold ${fontSize}px Arial`;
-        ctx.fillText(`CH: ${currentCH} (${selectedSide})`, 30, canvas.height - (fontSize * 3.2));
-        ctx.font = `${fontSize * 0.8}px Arial`;
-        ctx.fillText(`Note: ${note || 'N/A'}`, 30, canvas.height - (fontSize * 2.1));
-        ctx.fillText(`GPS: ${currentLat}, ${currentLon}`, 30, canvas.height - (fontSize * 1.1));
-        
-        const dateStr = new Date().toLocaleString();
-        ctx.fillText(dateStr, canvas.width - ctx.measureText(dateStr).width - 30, canvas.height - (fontSize * 1.1));
-
-        const logoImg = document.getElementById("mainLogo");
-        const lW = canvas.width * 0.12; const lH = (logoImg.naturalHeight / logoImg.naturalWidth) * lW;
-        ctx.drawImage(logoImg, canvas.width - lW - 30, 30, lW, lH);
+        ctx.fillRect(0, canvas.height - (fSize * 5), canvas.width, fSize * 5);
+        ctx.fillStyle = "white"; ctx.font = `bold ${fSize}px Arial`;
+        ctx.fillText(`CH: ${currentCH} (${selectedSide})`, 30, canvas.height - (fSize * 3.2));
+        ctx.font = `${fSize * 0.8}px Arial`;
+        ctx.fillText(`Note: ${note}`, 30, canvas.height - (fSize * 2.1));
+        ctx.fillText(`GPS: ${currentLat}, ${currentLon}`, 30, canvas.height - (fSize * 1.1));
 
         const link = document.createElement('a');
-        link.download = `Site_${currentCH}_${selectedSide}.jpg`;
-        link.href = canvas.toDataURL("image/jpeg", 0.9);
+        link.download = `BPPTPL_${currentCH}_${selectedSide}.jpg`;
+        link.href = canvas.toDataURL("image/jpeg", 0.8);
         link.click();
         
         document.getElementById("annotationModal").style.display = "none";
         document.getElementById("customNote").value = "";
     };
     img.src = pendingImageData;
+}
+
+function generatePDF() {
+    if (visitLogs.length === 0) { alert("No photos captured yet!"); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(18); doc.setTextColor(0, 74, 153);
+    doc.text("BPPTPL SITE VISIT SUMMARY", 14, 20);
+    doc.setFontSize(10); doc.setTextColor(100);
+    doc.text(`Prepared by: Mukesh Kumar Kollepara | Date: ${new Date().toLocaleDateString()}`, 14, 28);
+    
+    let y = 40;
+    doc.setFontSize(11); doc.setTextColor(0);
+    visitLogs.forEach((log, i) => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text(`${i+1}. Chainage: ${log.ch} (${log.side}) - ${log.time}`, 14, y);
+        doc.text(`   Note: ${log.note}`, 14, y + 5);
+        doc.text(`   GPS: ${log.lat}, ${log.lon}`, 14, y + 10);
+        y += 20;
+    });
+    doc.save(`Visit_Summary_${new Date().toLocaleDateString()}.pdf`);
 }
 
 function toggleTracking() {
