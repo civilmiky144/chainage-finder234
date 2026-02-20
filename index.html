@@ -3,52 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#004a99">
 <title>BPPTPL Chainage Finder</title>
 <style>
-:root{
-    --bppt-blue: #004a99;
-    --bppt-green: #28a745;
-    --safety-orange: #f97316;
-    --bg: #f4f7f6;
-    --surface: #ffffff;
-    --border: #d1d5db;
-    --text: #1f2937;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{color:var(--text);font-family:sans-serif;background:var(--bg);display:flex;flex-direction:column;height:100dvh}
+:root{ --blue: #004a99; --green: #28a745; --orange: #FF8C00; --bg: #f4f7f6; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{color:#1f2937; font-family:sans-serif; background:var(--bg); display:flex; flex-direction:column; height:100dvh; overflow:hidden;}
 
 header {
-    background: white; padding: 12px; border-bottom: 4px solid var(--bppt-blue);
-    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    background:white; padding:12px; border-bottom:4px solid var(--blue);
+    display:flex; flex-direction:row; align-items:center; justify-content:center; gap:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); flex-shrink:0;
 }
-.logo { height: 40px; width: auto; }
-.header-text h1 { margin: 0; font-size: 13px; color: var(--bppt-blue); text-transform: uppercase; }
-.header-text p { margin: 0; font-size: 10px; color: var(--bppt-green); font-weight: bold; }
+.logo { height:45px; width:auto; }
+.header-text h1 { margin:0; font-size:13px; color:var(--blue); text-transform:uppercase; }
+.header-text p { margin:0; font-size:10px; color:var(--green); font-weight:bold; }
 
-.content { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.scroll-area { flex:1; overflow-y:auto; padding:15px; }
 
-/* LARGE SINGLE LINE ORANGE CHAINAGE */
-.ch-card { 
-    background: white; border: 1px solid var(--border); border-radius: 16px; 
-    width: 100%; padding: 30px 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+.ch-card {
+    background:white; border:1px solid #ddd; border-radius:20px; padding:25px 10px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.05); margin-bottom:15px;
 }
-.label { font-size: 10px; letter-spacing: 2px; color: #666; margin-bottom: 10px; font-weight: bold; }
-#chValue { 
-    font-size: 14vw; font-weight: 900; color: var(--safety-orange); 
-    font-family: monospace; white-space: nowrap; 
-}
-#chDist { font-size: 12px; color: #888; margin-top: 10px; }
+.label { font-size:10px; letter-spacing:2px; color:#666; margin-bottom:10px; font-weight:bold; text-transform:uppercase; }
+#chValue { font-size:14vw; font-weight:900; color:var(--orange); font-family:monospace; white-space:nowrap; }
 
-.gps-info { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-.ibox { background: #eee; padding: 8px; border-radius: 6px; text-align: center; font-size: 10px; }
+.section-card { background:#eef2ff; border:1px solid #c7d2fe; border-radius:15px; padding:15px; margin-bottom:15px; display:none; }
+.sec-title { font-size:14px; font-weight:800; color:var(--blue); border-bottom:1px solid #c7d2fe; padding-bottom:5px; margin-bottom:10px; text-align:center; }
+.sec-detail { font-size:13px; margin:4px 0; }
+.sec-phone { color:var(--blue); text-decoration:none; font-weight:bold; display:inline-flex; align-items:center; gap:8px; margin-top:5px; }
 
-.btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; margin-top: 20px; cursor: pointer; }
-.btn-primary { background: var(--bppt-blue); color: white; }
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px; }
+.ibox { background:white; border:1px solid #ddd; padding:8px; border-radius:10px; text-align:center; }
+.ibox-lbl { font-size:8px; color:#888; font-weight:bold; }
+.ibox-val { font-size:11px; font-weight:bold; color:var(--blue); }
 
-footer {
-    padding: 15px; background: white; text-align: center; font-size: 12px; 
-    border-top: 1px solid var(--border); color: #333;
-}
+.btn { width:100%; padding:18px; border-radius:12px; border:none; font-size:13px; font-weight:bold; text-transform:uppercase; cursor:pointer; margin-bottom:10px; }
+.btn-primary { background:var(--blue); color:white; }
+.btn-stop { background:#ef4444; color:white; }
+
+footer { padding:12px; background:white; text-align:center; border-top:1px solid #e5e7eb; font-size:11px; }
 </style>
 </head>
 <body>
@@ -56,83 +48,109 @@ footer {
 <header>
     <img src="1000678935.png" alt="Logo" class="logo">
     <div class="header-text">
-        <h1>Beawar Pali Pindwara Tollway Pvt Ltd</h1>
-        <p>Operations & Maintenance Division</p>
+        <h1>Beawar Pali Pindwara Tollway</h1>
+        <p>MAINTENANCE DEPARTMENT</p>
     </div>
 </header>
 
-<div class="content">
+<div class="scroll-area">
     <div class="ch-card">
-        <div class="label">CURRENT CHAINAGE</div>
+        <div class="label">Current Chainage</div>
         <div id="chValue">--+---</div>
-        <div id="chDist">Waiting for GPS...</div>
+        <div id="chDist" style="font-size:11px; color:#999; margin-top:5px;">GPS Offline</div>
     </div>
 
-    <div class="gps-info">
-        <div class="ibox">ACCURACY<br><b id="infoAcc">--</b></div>
-        <div class="ibox">PT DIST<br><b id="infoDist">--</b></div>
+    <div class="section-card" id="sectionCard">
+        <div class="sec-title" id="secTitle">SECTION --</div>
+        <div class="sec-detail">In-charge: <strong id="secName">--</strong></div>
+        <a id="secLink" class="sec-phone">&#9742; <span id="secPhone">--</span></a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="ibox"><div class="ibox-lbl">ACCURACY</div><div class="ibox-val" id="infoAcc">--</div></div>
+        <div class="ibox"><div class="ibox-lbl">DIST TO POINT</div><div class="ibox-val" id="infoDist">--</div></div>
     </div>
 
     <button class="btn btn-primary" id="btnTrack" onclick="toggleTracking()">Start Tracking</button>
 </div>
 
 <footer>
-    Prepared by - <strong>Mukesh Kumar Kollepara</strong>
+    Prepared by - <strong>Mukesh Kumar Kollepara</strong> (Sr.Manager)
 </footer>
 
 <script>
-// I have truncated the points for the message, but keep your full 4889 points here
+// --- PASTE YOUR FULL 4889 POINTS LIST HERE ---
 const CHAIN_PTS=[
 ["0+000",26.0617792,74.2991350],
 ["0+050",26.0619805,74.2986852],
-// ... PASTE ALL YOUR 4889 POINTS HERE ...
+// ... PASTE REMAINING POINTS HERE ...
 ["244+354",24.7800582,73.0298757]
 ];
 
-let watchId = null;
-let isTracking = false;
+const SECTION_DATA = {
+    1: { name: "Mr. Sachin Gupta", phone: "8506878948" },
+    2: { name: "Mr. Amit Khemwani", phone: "6375884003" },
+    3: { name: "Section Incharge", phone: "9529826416" },
+    4: { name: "Mr. Bhagwat Rathore", phone: "8619494508" }
+};
 
+let isTracking = false, watchId = null;
+
+// High-Precision Haversine Distance
 function distM(lat1, lon1, lat2, lon2) {
-    const R = 6371000;
+    const R = 6371000; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-    return 2 * R * Math.asin(Math.sqrt(a));
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
 }
 
-function findNearest(lat, lon) {
-    let bestDist = Infinity;
-    let bestName = "--+---";
+function updateUI(lat, lon, acc) {
+    let minD = Infinity;
+    let nearestTag = "--+---";
+
     for (let i = 0; i < CHAIN_PTS.length; i++) {
-        const d = distM(lat, lon, CHAIN_PTS[i][1], CHAIN_PTS[i][2]);
-        if (d < bestDist) {
-            bestDist = d;
-            bestName = CHAIN_PTS[i][0]; // This picks the Title from your KML
+        let d = distM(lat, lon, CHAIN_PTS[i][1], CHAIN_PTS[i][2]);
+        if (d < minD) {
+            minD = d;
+            nearestTag = CHAIN_PTS[i][0];
         }
     }
-    return { name: bestName, dist: bestDist };
+
+    document.getElementById("chValue").textContent = nearestTag;
+    document.getElementById("infoAcc").textContent = "±" + acc.toFixed(1) + "m";
+    document.getElementById("infoDist").textContent = minD.toFixed(1) + "m";
+    document.getElementById("chDist").textContent = minD.toFixed(1) + "m from Alignment";
+
+    const km = parseInt(nearestTag.split('+')[0]);
+    let sNum = km >= 180 ? 4 : km >= 120 ? 3 : km >= 60 ? 2 : 1;
+    const sData = SECTION_DATA[sNum];
+    document.getElementById("sectionCard").style.display = "block";
+    document.getElementById("secTitle").textContent = "SECTION " + sNum;
+    document.getElementById("secName").textContent = sData.name;
+    document.getElementById("secPhone").textContent = sData.phone;
+    document.getElementById("secLink").href = "tel:" + sData.phone;
 }
 
 function toggleTracking() {
+    const btn = document.getElementById("btnTrack");
     if (isTracking) {
         navigator.geolocation.clearWatch(watchId);
-        document.getElementById("btnTrack").textContent = "Start Tracking";
         isTracking = false;
+        btn.textContent = "Start Tracking";
+        btn.className = "btn btn-primary";
+        document.getElementById("sectionCard").style.display = "none";
     } else {
         isTracking = true;
-        document.getElementById("btnTrack").textContent = "Stop Tracking";
+        btn.textContent = "Stop Tracking";
+        btn.className = "btn btn-stop";
         watchId = navigator.geolocation.watchPosition(pos => {
-            const res = findNearest(pos.coords.latitude, pos.coords.longitude);
-            document.getElementById("chValue").textContent = res.name;
-            document.getElementById("infoAcc").textContent = "±" + pos.coords.accuracy.toFixed(1) + "m";
-            document.getElementById("infoDist").textContent = res.dist.toFixed(1) + "m";
-            document.getElementById("chDist").textContent = res.dist.toFixed(1) + "m from point";
-        }, err => console.error(err), {enableHighAccuracy:true});
+            updateUI(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+        }, err => alert("GPS Error"), {enableHighAccuracy: true});
     }
-}
-
-function showScreen(name) {
-    // Basic toggle for help screen if needed
 }
 </script>
 </body>
