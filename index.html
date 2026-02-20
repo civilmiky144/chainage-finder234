@@ -75,6 +75,7 @@ footer { padding: 12px; background: white; text-align: center; border-top: 1px s
     <input type="file" accept="image/*" capture="camera" id="cameraInput" onchange="openAnnotationModal(event)">
     <button class="btn btn-camera" id="btnCamera" onclick="triggerCamera()" disabled>📷 Capture Site Photo</button>
     <button class="btn btn-pdf" id="btnSummary" onclick="generatePDF()">📄 Generate Visit Summary</button>
+    <button class="btn" style="background:#ddd; color:#666; font-size:10px; padding:8px;" onclick="resetUser()">Change User Profile</button>
 </div>
 
 <div class="modal" id="userModal">
@@ -95,7 +96,7 @@ footer { padding: 12px; background: white; text-align: center; border-top: 1px s
             <div class="side-btn" onclick="selectSide('Median', this)">Median</div>
         </div>
         <input type="text" class="input-field" id="customNote" placeholder="Enter note (e.g. Pothole)">
-        <button class="btn btn-primary" onclick="finishImageProcessing()">Save & Download</button>
+        <button class="btn btn-primary" id="btnFinalSave" onclick="finishImageProcessing()">Save & Download</button>
     </div>
 </div>
 
@@ -103,20 +104,13 @@ footer { padding: 12px; background: white; text-align: center; border-top: 1px s
 <canvas id="canvasHelper"></canvas>
 
 <script>
-// --- YOUR COORDINATE LIST START ---
-const CHAIN_PTS=[
-["0+000",26.0617792,74.2991350],
-["0+050",26.0619805,74.2986852],
-// ... PASTE YOUR REMAINING 4889 POINTS HERE ...
-["244+354",24.7800582,73.0298757]
-];
-// --- YOUR COORDINATE LIST END ---
+// --- PASTE FULL 4889 POINTS HERE ---
+const CHAIN_PTS=[ ["0+000",26.0617792,74.2991350], ["244+354",24.7800582,73.0298757] ];
 
 let isTracking = false, watchId = null, currentCH = "--+---", currentLat = "0", currentLon = "0", selectedSide = "N/A", pendingImageData = null;
 let visitLogs = [];
 let userProfile = { name: "User", desig: "Engineer" };
 
-// USER LOGIC
 function checkUser() {
     const saved = localStorage.getItem("bpptpl_user");
     if(saved) { userProfile = JSON.parse(saved); updateFooter(); } 
@@ -130,9 +124,9 @@ function saveUser() {
     document.getElementById("userModal").style.display = "none";
     updateFooter();
 }
+function resetUser() { localStorage.removeItem("bpptpl_user"); location.reload(); }
 function updateFooter() { document.getElementById("appFooter").innerHTML = `Prepared by - <strong>${userProfile.name}</strong> (${userProfile.desig})`; }
 
-// MATHEMATICAL DISTANCE LOGIC (FIXED)
 function distM(lat1, lon1, lat2, lon2) {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -142,8 +136,7 @@ function distM(lat1, lon1, lat2, lon2) {
 }
 
 function findNearest(lat, lon) {
-    let minD = Infinity;
-    let nearestTag = "--+---";
+    let minD = Infinity; let nearestTag = "--+---";
     for (let i = 0; i < CHAIN_PTS.length; i++) {
         let d = distM(lat, lon, CHAIN_PTS[i][1], CHAIN_PTS[i][2]);
         if (d < minD) { minD = d; nearestTag = CHAIN_PTS[i][0]; }
@@ -155,17 +148,14 @@ function toggleTracking() {
     const btn = document.getElementById("btnTrack");
     if (isTracking) {
         navigator.geolocation.clearWatch(watchId); isTracking = false;
-        btn.textContent = "Want Your Chainage Click Me";
-        btn.className = "btn btn-primary";
+        btn.textContent = "Want Your Chainage Click Me"; btn.className = "btn btn-primary";
         document.getElementById("btnCamera").disabled = true;
     } else {
         isTracking = true;
-        btn.textContent = "Stop Tracking";
-        btn.className = "btn btn-stop";
+        btn.textContent = "Stop Tracking"; btn.className = "btn btn-stop";
         document.getElementById("btnCamera").disabled = false;
         watchId = navigator.geolocation.watchPosition(pos => {
-            currentLat = pos.coords.latitude.toFixed(6);
-            currentLon = pos.coords.longitude.toFixed(6);
+            currentLat = pos.coords.latitude.toFixed(6); currentLon = pos.coords.longitude.toFixed(6);
             const res = findNearest(pos.coords.latitude, pos.coords.longitude);
             currentCH = res.tag;
             document.getElementById("chValue").textContent = res.tag;
@@ -175,13 +165,13 @@ function toggleTracking() {
     }
 }
 
-// CAMERA & PDF LOGIC
 function triggerCamera() { document.getElementById("cameraInput").click(); }
 function selectSide(side, el) { 
     selectedSide = side; 
     document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
 }
+
 function openAnnotationModal(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -191,29 +181,55 @@ function openAnnotationModal(event) {
 }
 
 function finishImageProcessing() {
+    const saveBtn = document.getElementById("btnFinalSave");
+    saveBtn.disabled = true; saveBtn.textContent = "Processing...";
+    
     const note = document.getElementById("customNote").value || "N/A";
     const ts = new Date().toLocaleString();
-    visitLogs.push({ ch: currentCH, side: selectedSide, note: note, lat: currentLat, lon: currentLon, time: ts });
+    
     const img = new Image();
     img.onload = function() {
         const canvas = document.getElementById("canvasHelper");
         const ctx = canvas.getContext("2d");
-        canvas.width = img.width; canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        const f = Math.floor(canvas.width / 25);
-        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, canvas.height-(f*5.5), canvas.width, f*5.5);
+
+        // MEMORY OPTIMIZATION: SCALE DOWN LARGE PHOTOS
+        const MAX_WIDTH = 1600;
+        let width = img.width;
+        let height = img.height;
+        if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+        }
+        
+        canvas.width = width; canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const f = Math.floor(width / 25);
+        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, height-(f*5.5), width, f*5.5);
         ctx.fillStyle = "white"; ctx.font = `bold ${f}px Arial`;
-        ctx.fillText(`CH: ${currentCH} (${selectedSide})`, 30, canvas.height-(f*3.8));
+        ctx.fillText(`CH: ${currentCH} (${selectedSide})`, 30, height-(f*3.8));
         ctx.font = `${f*0.7}px Arial`;
-        ctx.fillText(`Note: ${note} | GPS: ${currentLat}, ${currentLon}`, 30, canvas.height-(f*2.4));
-        ctx.fillText(`By: ${userProfile.name} | ${ts}`, 30, canvas.height-(f*1.0));
+        ctx.fillText(`Note: ${note} | GPS: ${currentLat}, ${currentLon}`, 30, height-(f*2.4));
+        ctx.fillText(`By: ${userProfile.name} | ${ts}`, 30, height-(f*1.0));
+        
         const logoImg = document.getElementById("mainLogo");
-        const lW = canvas.width * 0.12; const lH = (logoImg.naturalHeight / logoImg.naturalWidth) * lW;
-        ctx.drawImage(logoImg, canvas.width - lW - 30, 30, lW, lH);
-        const link = document.createElement('a'); link.download = `Site_${currentCH}.jpg`;
-        link.href = canvas.toDataURL("image/jpeg", 0.8); link.click();
+        const lW = width * 0.12; const lH = (logoImg.naturalHeight / logoImg.naturalWidth) * lW;
+        ctx.drawImage(logoImg, width - lW - 30, 30, lW, lH);
+
+        const link = document.createElement('a');
+        link.download = `Site_${currentCH.replace('+','_')}_${selectedSide}.jpg`;
+        link.href = canvas.toDataURL("image/jpeg", 0.7); // 0.7 quality saves more memory
+        link.click();
+
+        visitLogs.push({ ch: currentCH, side: selectedSide, note: note, lat: currentLat, lon: currentLon, time: ts });
+        
         document.getElementById("annotationModal").style.display = "none";
         document.getElementById("customNote").value = "";
+        saveBtn.disabled = false; saveBtn.textContent = "Save & Download";
+        
+        // Clear memory
+        img.src = "";
+        pendingImageData = null;
     };
     img.src = pendingImageData;
 }
@@ -229,7 +245,7 @@ function generatePDF() {
         doc.setFont(undefined, 'bold'); doc.text(`${i+1}. CH: ${log.ch} (${log.side})`, 14, y);
         doc.setFont(undefined, 'normal'); doc.text(`Note: ${log.note}`, 14, y+6);
         doc.text(`GPS: ${log.lat}, ${log.lon} | Time: ${log.time}`, 14, y+11);
-        y += 20;
+        y += 22;
     });
     doc.save(`${userProfile.name}_Report.pdf`);
 }
