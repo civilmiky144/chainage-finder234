@@ -7,47 +7,45 @@
 <title>BPPTPL Site Tracker Pro</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{ --bppt-blue: #004a99; --bppt-green: #28a745; --safety-orange: #FF8C00; --bg: #f4f7f6; }
+:root{ --bppt-blue: #004a99; --bppt-green: #28a745; --orange: #FF8C00; --bg: #f4f7f6; }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{color: #1f2937; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; height: 100dvh;}
+body{color:#1f2937; font-family:sans-serif; background:var(--bg); display:flex; flex-direction:column; height:100dvh; overflow:hidden;}
 
 header {
-    background: white; padding: 12px 16px; border-bottom: 4px solid var(--bppt-blue);
-    display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0;
+    background:white; padding:12px; border-bottom:4px solid var(--bppt-blue);
+    display:flex; flex-direction:row; align-items:center; justify-content:center; gap:12px; box-shadow:0 2px 4px rgba(0,0,0,0.1); flex-shrink:0;
 }
-.logo { height: 48px; width: auto; }
-.header-text h1 { margin: 0; font-size: 13px; color: var(--bppt-blue); text-transform: uppercase; line-height: 1.2; }
-.header-text p { margin: 1px 0 0 0; font-size: 10px; color: var(--bppt-green); font-weight: bold; }
+.logo { height:45px; width:auto; }
+.header-text h1 { margin:0; font-size:13px; color:var(--bppt-blue); text-transform:uppercase; }
+.header-text p { margin:0; font-size:10px; color:var(--bppt-green); font-weight:bold; }
 
-.scroll-area { flex: 1; overflow-y: auto; padding: 15px; }
+.scroll-area { flex:1; overflow-y:auto; padding:15px; padding-bottom:80px; }
 
 .ch-card {
-    background: white; border: 1px solid #d1d5db; border-radius: 20px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px;
+    background:white; border:1px solid #ddd; border-radius:20px; padding:25px 10px; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.05); margin-bottom:15px;
 }
-.label { font-size: 11px; letter-spacing: 2px; color: #6b7280; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; }
-#chValue { font-size: 14vw; font-weight: 900; color: var(--safety-orange); font-family: monospace; }
+.label { font-size:10px; letter-spacing:2px; color:#666; margin-bottom:10px; font-weight:bold; text-transform:uppercase; }
+#chValue { font-size:14vw; font-weight:900; color:var(--orange); font-family:monospace; }
 
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.ibox { background: white; border: 1px solid #d1d5db; padding: 8px; border-radius: 10px; text-align: center; }
-.ibox-lbl { font-size: 9px; color: #6b7280; font-weight: bold; }
-.ibox-val { font-size: 11px; font-weight: bold; color: var(--bppt-blue); }
+.section-card { background:#eef2ff; border:1px solid #c7d2fe; border-radius:15px; padding:12px; margin-bottom:15px; display:none; }
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px; }
+.ibox { background:white; border:1px solid #ddd; padding:8px; border-radius:10px; text-align:center; }
+.ibox-lbl { font-size:8px; color:#888; font-weight:bold; }
+.ibox-val { font-size:11px; font-weight:bold; color:var(--bppt-blue); }
 
-.btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; }
-.btn-primary { background: var(--bppt-blue); color: white; }
-.btn-stop { background: #ef4444; color: white; }
-.btn-camera { background: #374151; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
-.btn-pdf { background: var(--bppt-green); color: white; margin-top: 10px; }
+.btn { width:100%; padding:16px; border-radius:12px; border:none; font-size:13px; font-weight:bold; text-transform:uppercase; cursor:pointer; margin-bottom:10px; }
+.btn-primary { background:var(--bppt-blue); color:white; }
+.btn-stop { background:#ef4444; color:white; }
+.btn-camera { background:#374151; color:white; }
 
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
-.modal-content { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 25px; }
-.modal-h2 { font-size: 18px; margin-bottom: 20px; color: var(--bppt-blue); text-align: center; font-weight: 800; }
-.side-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.side-btn { padding: 10px; border: 2px solid #ddd; border-radius: 10px; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center;}
-.side-btn.active { border-color: var(--bppt-blue); background: #eef2ff; color: var(--bppt-blue); }
-.input-field { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; font-size: 14px; }
+.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+.modal-content { background:white; width:100%; max-width:400px; border-radius:20px; padding:20px; }
+.side-selector { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:15px; }
+.side-btn { padding:12px; border:1px solid #ddd; border-radius:8px; font-size:12px; cursor:pointer; text-align:center; font-weight:bold; }
+.side-btn.active { background:var(--bppt-blue); color:white; border-color:var(--bppt-blue); }
 
-footer { padding: 12px; background: white; text-align: center; border-top: 1px solid #e5e7eb; font-size: 11px; }
-#cameraInput, #canvasHelper { display: none; }
+footer { position:fixed; bottom:0; width:100%; padding:10px; background:white; text-align:center; border-top:1px solid #eee; font-size:11px; }
+#cameraInput, #canvasHelper { display:none; }
 </style>
 </head>
 <body onload="checkUser()">
@@ -66,6 +64,12 @@ footer { padding: 12px; background: white; text-align: center; border-top: 1px s
         <div id="chValue">--+---</div>
     </div>
 
+    <div class="section-card" id="sectionCard">
+        <div style="font-weight:bold; color:var(--bppt-blue); margin-bottom:5px;" id="secTitle">SECTION --</div>
+        <div style="font-size:12px">In-charge: <strong id="secName">--</strong></div>
+        <div id="secPhone" style="font-size:13px; font-weight:bold; margin-top:5px;">&#9742; --</div>
+    </div>
+
     <div class="stats-grid">
         <div class="ibox"><div class="ibox-lbl">LATITUDE</div><div class="ibox-val" id="infoLat">--</div></div>
         <div class="ibox"><div class="ibox-lbl">LONGITUDE</div><div class="ibox-val" id="infoLon">--</div></div>
@@ -74,29 +78,28 @@ footer { padding: 12px; background: white; text-align: center; border-top: 1px s
     <button class="btn btn-primary" id="btnTrack" onclick="toggleTracking()">Want Your Chainage Click Me</button>
     <input type="file" accept="image/*" capture="camera" id="cameraInput" onchange="openAnnotationModal(event)">
     <button class="btn btn-camera" id="btnCamera" onclick="triggerCamera()" disabled>📷 Capture Site Photo</button>
-    <button class="btn btn-pdf" id="btnSummary" onclick="generatePDF()">📄 Generate Visit Summary</button>
-    <button class="btn" style="background:#ddd; color:#666; font-size:10px; padding:8px;" onclick="resetUser()">Change User Profile</button>
-</div>
-
-<div class="modal" id="userModal">
-    <div class="modal-content">
-        <h2 class="modal-h2">User Profile Setup</h2>
-        <input type="text" class="input-field" id="userName" placeholder="Full Name">
-        <input type="text" class="input-field" id="userDesig" placeholder="Designation (e.g. Sr. Manager)">
-        <button class="btn btn-primary" onclick="saveUser()">Save & Start</button>
-    </div>
+    <button class="btn" style="background:var(--bppt-green); color:white;" onclick="generatePDF()">📄 Visit Summary PDF</button>
 </div>
 
 <div class="modal" id="annotationModal">
     <div class="modal-content">
-        <h2 class="modal-h2">Site Observation</h2>
+        <h3 style="margin-bottom:15px; text-align:center;">Site Details</h3>
         <div class="side-selector">
             <div class="side-btn" onclick="selectSide('LHS', this)">LHS</div>
             <div class="side-btn" onclick="selectSide('RHS', this)">RHS</div>
             <div class="side-btn" onclick="selectSide('Median', this)">Median</div>
         </div>
-        <input type="text" class="input-field" id="customNote" placeholder="Enter note (e.g. Pothole)">
-        <button class="btn btn-primary" id="btnFinalSave" onclick="finishImageProcessing()">Save & Download</button>
+        <input type="text" id="customNote" placeholder="Enter note (e.g. Guardrail damage)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        <button class="btn btn-primary" id="btnFinalSave" onclick="finishImageProcessing()">Save Photo</button>
+    </div>
+</div>
+
+<div class="modal" id="userModal">
+    <div class="modal-content">
+        <h3 style="margin-bottom:15px; text-align:center;">User Setup</h3>
+        <input type="text" id="userName" placeholder="Your Full Name" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <input type="text" id="userDesig" placeholder="Designation" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        <button class="btn btn-primary" onclick="saveUser()">Save & Start</button>
     </div>
 </div>
 
@@ -104,12 +107,18 @@ footer { padding: 12px; background: white; text-align: center; border-top: 1px s
 <canvas id="canvasHelper"></canvas>
 
 <script>
-// --- PASTE FULL 4889 POINTS HERE ---
+// --- PASTE YOUR 4889 POINTS HERE ---
 const CHAIN_PTS=[ ["0+000",26.0617792,74.2991350], ["244+354",24.7800582,73.0298757] ];
 
-let isTracking = false, watchId = null, currentCH = "--+---", currentLat = "0", currentLon = "0", selectedSide = "N/A", pendingImageData = null;
-let visitLogs = [];
-let userProfile = { name: "User", desig: "Engineer" };
+const SECTION_DATA = {
+    1: { name: "Mr. Sachin Gupta", phone: "8506878948" },
+    2: { name: "Mr. Amit Khemwani", phone: "6375884003" },
+    3: { name: "Section Incharge", phone: "9529826416" },
+    4: { name: "Mr. Bhagwat Rathore", phone: "8619494508" }
+};
+
+let isTracking = false, watchId = null, currentCH = "--+---", currentLat = "", currentLon = "", selectedSide = "N/A", pendingImageData = null;
+let visitLogs = [], userProfile = { name: "", desig: "" };
 
 function checkUser() {
     const saved = localStorage.getItem("bpptpl_user");
@@ -124,26 +133,9 @@ function saveUser() {
     document.getElementById("userModal").style.display = "none";
     updateFooter();
 }
-function resetUser() { localStorage.removeItem("bpptpl_user"); location.reload(); }
 function updateFooter() { document.getElementById("appFooter").innerHTML = `Prepared by - <strong>${userProfile.name}</strong> (${userProfile.desig})`; }
 
-function distM(lat1, lon1, lat2, lon2) {
-    const R = 6371000;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-function findNearest(lat, lon) {
-    let minD = Infinity; let nearestTag = "--+---";
-    for (let i = 0; i < CHAIN_PTS.length; i++) {
-        let d = distM(lat, lon, CHAIN_PTS[i][1], CHAIN_PTS[i][2]);
-        if (d < minD) { minD = d; nearestTag = CHAIN_PTS[i][0]; }
-    }
-    return { tag: nearestTag, dist: minD };
-}
-
+// ROCK SOLID CHAINAGE LOGIC
 function toggleTracking() {
     const btn = document.getElementById("btnTrack");
     if (isTracking) {
@@ -155,35 +147,48 @@ function toggleTracking() {
         btn.textContent = "Stop Tracking"; btn.className = "btn btn-stop";
         document.getElementById("btnCamera").disabled = false;
         watchId = navigator.geolocation.watchPosition(pos => {
-            currentLat = pos.coords.latitude.toFixed(6); currentLon = pos.coords.longitude.toFixed(6);
-            const res = findNearest(pos.coords.latitude, pos.coords.longitude);
-            currentCH = res.tag;
-            document.getElementById("chValue").textContent = res.tag;
+            currentLat = pos.coords.latitude.toFixed(6);
+            currentLon = pos.coords.longitude.toFixed(6);
+            
+            // FAST LOOKUP
+            let minD = Infinity;
+            for (let pt of CHAIN_PTS) {
+                let d = Math.sqrt(Math.pow(pos.coords.latitude - pt[1], 2) + Math.pow(pos.coords.longitude - pt[2], 2));
+                if (d < minD) { minD = d; currentCH = pt[0]; }
+            }
+            document.getElementById("chValue").textContent = currentCH;
             document.getElementById("infoLat").textContent = currentLat;
             document.getElementById("infoLon").textContent = currentLon;
-        }, err => alert("GPS Error: " + err.message), {enableHighAccuracy: true});
+            
+            // SECTION UPDATE
+            const km = parseInt(currentCH.split('+')[0]);
+            let sNum = km >= 180 ? 4 : km >= 120 ? 3 : km >= 60 ? 2 : 1;
+            const sData = SECTION_DATA[sNum];
+            document.getElementById("sectionCard").style.display = "block";
+            document.getElementById("secTitle").textContent = "SECTION " + sNum;
+            document.getElementById("secName").textContent = sData.name;
+            document.getElementById("secPhone").textContent = "\u260E " + sData.phone;
+        }, null, {enableHighAccuracy: true});
     }
 }
 
+// MEMORY-SAFE CAMERA LOGIC
 function triggerCamera() { document.getElementById("cameraInput").click(); }
 function selectSide(side, el) { 
     selectedSide = side; 
     document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
 }
-
-function openAnnotationModal(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+function openAnnotationModal(e) {
+    const file = e.target.files[0];
     const reader = new FileReader();
-    reader.onload = (e) => { pendingImageData = e.target.result; document.getElementById("annotationModal").style.display = "flex"; };
+    reader.onload = (event) => { pendingImageData = event.target.result; document.getElementById("annotationModal").style.display = "flex"; };
     reader.readAsDataURL(file);
 }
 
 function finishImageProcessing() {
-    const saveBtn = document.getElementById("btnFinalSave");
-    saveBtn.disabled = true; saveBtn.textContent = "Processing...";
-    
+    const btn = document.getElementById("btnFinalSave");
+    btn.disabled = true; btn.textContent = "Processing...";
     const note = document.getElementById("customNote").value || "N/A";
     const ts = new Date().toLocaleString();
     
@@ -191,63 +196,50 @@ function finishImageProcessing() {
     img.onload = function() {
         const canvas = document.getElementById("canvasHelper");
         const ctx = canvas.getContext("2d");
-
-        // MEMORY OPTIMIZATION: SCALE DOWN LARGE PHOTOS
-        const MAX_WIDTH = 1600;
-        let width = img.width;
-        let height = img.height;
-        if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-        }
         
-        canvas.width = width; canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const f = Math.floor(width / 25);
-        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, height-(f*5.5), width, f*5.5);
+        // LIMIT SIZE TO PREVENT CRASH
+        const scale = Math.min(1.0, 1600 / img.width);
+        canvas.width = img.width * scale; canvas.height = img.height * scale;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        const h = canvas.height; const w = canvas.width; const f = Math.floor(w / 30);
+        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, h-(f*5), w, f*5);
         ctx.fillStyle = "white"; ctx.font = `bold ${f}px Arial`;
-        ctx.fillText(`CH: ${currentCH} (${selectedSide})`, 30, height-(f*3.8));
+        ctx.fillText(`CH: ${currentCH} (${selectedSide})`, 20, h-(f*3.2));
         ctx.font = `${f*0.7}px Arial`;
-        ctx.fillText(`Note: ${note} | GPS: ${currentLat}, ${currentLon}`, 30, height-(f*2.4));
-        ctx.fillText(`By: ${userProfile.name} | ${ts}`, 30, height-(f*1.0));
-        
-        const logoImg = document.getElementById("mainLogo");
-        const lW = width * 0.12; const lH = (logoImg.naturalHeight / logoImg.naturalWidth) * lW;
-        ctx.drawImage(logoImg, width - lW - 30, 30, lW, lH);
+        ctx.fillText(`Note: ${note} | GPS: ${currentLat}, ${currentLon}`, 20, h-(f*2.0));
+        ctx.fillText(`By: ${userProfile.name} | ${ts}`, 20, h-(f*0.8));
 
+        const logoImg = document.getElementById("mainLogo");
+        const lW = w * 0.12; const lH = (logoImg.naturalHeight/logoImg.naturalWidth)*lW;
+        ctx.drawImage(logoImg, w-lW-20, 20, lW, lH);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
         const link = document.createElement('a');
-        link.download = `Site_${currentCH.replace('+','_')}_${selectedSide}.jpg`;
-        link.href = canvas.toDataURL("image/jpeg", 0.7); // 0.7 quality saves more memory
+        link.download = `Site_${currentCH.replace('+','_')}.jpg`;
+        link.href = dataUrl;
         link.click();
 
         visitLogs.push({ ch: currentCH, side: selectedSide, note: note, lat: currentLat, lon: currentLon, time: ts });
-        
         document.getElementById("annotationModal").style.display = "none";
         document.getElementById("customNote").value = "";
-        saveBtn.disabled = false; saveBtn.textContent = "Save & Download";
-        
-        // Clear memory
-        img.src = "";
-        pendingImageData = null;
+        btn.disabled = false; btn.textContent = "Save Photo";
     };
     img.src = pendingImageData;
 }
 
 function generatePDF() {
-    if (visitLogs.length === 0) return alert("Capture photos first!");
+    if (visitLogs.length === 0) return alert("No logs recorded");
     const { jsPDF } = window.jspdf; const doc = new jsPDF();
-    doc.setFontSize(18); doc.text("BPPTPL SITE VISIT SUMMARY", 14, 20);
+    doc.text("BPPTPL VISIT SUMMARY", 14, 20);
     doc.setFontSize(10); doc.text(`By: ${userProfile.name} | Date: ${new Date().toLocaleDateString()}`, 14, 28);
     let y = 40;
-    visitLogs.forEach((log, i) => {
-        if (y > 270) { doc.addPage(); y = 20; }
-        doc.setFont(undefined, 'bold'); doc.text(`${i+1}. CH: ${log.ch} (${log.side})`, 14, y);
-        doc.setFont(undefined, 'normal'); doc.text(`Note: ${log.note}`, 14, y+6);
-        doc.text(`GPS: ${log.lat}, ${log.lon} | Time: ${log.time}`, 14, y+11);
-        y += 22;
+    visitLogs.forEach((l, i) => {
+        if(y > 270) { doc.addPage(); y = 20; }
+        doc.text(`${i+1}. CH: ${l.ch} (${l.side}) | Note: ${l.note}`, 14, y);
+        y += 10;
     });
-    doc.save(`${userProfile.name}_Report.pdf`);
+    doc.save(`Summary_${userProfile.name}.pdf`);
 }
 </script>
 </body>
