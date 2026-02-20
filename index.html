@@ -3,44 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>BPPTPL Survey Master</title>
+<meta name="theme-color" content="#004a99">
+<title>BPPTPL Site Tracker Pro</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{ --blue: #004a99; --green: #28a745; --orange: #FF8C00; --bg: #f4f7f6; }
-*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{color: #1f2937; font-family: sans-serif; background: var(--bg); display: flex; flex-direction: column; height: 100dvh; overflow:hidden;}
 
+/* HEADER */
 header {
     background: white; padding: 12px 16px; border-bottom: 4px solid var(--blue);
     display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 12px; flex-shrink: 0;
 }
-.logo { height: 40px; width: auto; }
-.header-text h1 { margin: 0; font-size: 12px; color: var(--blue); text-transform: uppercase; }
+.logo { height: 42px; width: auto; }
+.header-text h1 { margin: 0; font-size: 13px; color: var(--blue); text-transform: uppercase; line-height: 1.2; }
 
-.scroll-area { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 100px;}
+.scroll-area { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px;}
 
+/* CHAINAGE CARD */
 .ch-card {
-    background: white; border: 1px solid #d1d5db; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px;
+    background: white; border: 1px solid #d1d5db; border-radius: 20px; padding: 25px 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px;
 }
-#chValue { font-size: 15vw; font-weight: 900; color: var(--orange); font-family: monospace; }
+#chValue { font-size: 15vw; font-weight: 900; color: var(--orange); font-family: monospace; white-space: nowrap; }
 
-/* LOG BUTTONS */
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 13px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
-.btn-log { background: var(--blue); color: white; height: 100px; font-size: 16px; grid-column: span 2; }
-.btn-pdf { background: var(--green); color: white; }
-.btn-reset { background: #6b7280; color: white; }
+/* RESTORED SECTION CARD */
+.section-card {
+    background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: none;
+}
+.sec-title { font-size: 14px; font-weight: 800; color: var(--blue); border-bottom: 1px solid #c7d2fe; padding-bottom: 5px; margin-bottom: 8px; }
+.sec-row { display: flex; justify-content: space-between; font-size: 12px; margin: 3px 0; }
+.sec-phone { color: var(--blue); text-decoration: none; font-weight: bold; }
 
-/* MODAL */
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 15px; }
-.modal-content { background: white; width: 100%; max-width: 450px; border-radius: 20px; padding: 20px; max-height: 90vh; overflow-y: auto;}
-.opt-group { margin-bottom: 15px; }
-.opt-label { font-size: 11px; font-weight: bold; color: #666; margin-bottom: 8px; display: block; }
-.selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.sel-btn { padding: 10px 5px; border: 1px solid #ddd; border-radius: 8px; font-size: 11px; text-align: center; background: #f9f9f9; cursor: pointer; font-weight: bold;}
+/* BUTTONS */
+.btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 14px; font-weight: bold; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; }
+.btn-primary { background: var(--blue); color: white; }
+.btn-stop { background: #ef4444; color: white; }
+
+/* MODAL & MENU */
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+.modal-content { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 20px; max-height: 85vh; overflow-y: auto; }
+.selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
+.sel-btn { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 11px; text-align: center; background: #f9f9f9; font-weight: bold;}
 .sel-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
 
-footer { position: fixed; bottom: 0; width: 100%; padding: 10px; background: white; text-align: center; border-top: 1px solid #eee; font-size: 11px; }
+/* BOTTOM NAV MENU */
+.nav-bar { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; padding: 10px 0; z-index: 500; }
+.nav-item { background: none; border: none; font-size: 10px; font-weight: bold; color: var(--blue); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+footer { padding-bottom: 70px; text-align: center; font-size: 11px; color: #888; margin-top: 10px; }
 </style>
 </head>
 <body onload="checkUser()">
@@ -48,72 +59,64 @@ footer { position: fixed; bottom: 0; width: 100%; padding: 10px; background: whi
 <header>
     <img src="1000678935.png" alt="Logo" class="logo" id="mainLogo">
     <div class="header-text">
-        <h1>BPPTPL ROAD SURVEY</h1>
-        <p style="font-size:9px; color:var(--green); font-weight:bold;">MAINTENANCE DEPT (updated 2:40 A.M.)</p>
+        <h1>Beawar Pali Pindwara Tollway</h1>
+        <p style="font-size:10px; color:var(--green); font-weight:bold;">MAINTENANCE DEPARTMENT 2:49 A.M.</p>
     </div>
 </header>
 
 <div class="scroll-area">
     <div class="ch-card">
-        <div style="font-size:10px; font-weight:bold; color:#888; letter-spacing:2px;">LIVE CHAINAGE</div>
+        <div style="font-size:10px; color:#888; letter-spacing:2px;">LIVE CHAINAGE</div>
         <div id="chValue">--+---</div>
-        <div id="infoAcc" style="font-size:11px; color:var(--green); margin-top:5px;">Waiting for GPS...</div>
+        <div id="infoAcc" style="font-size:11px; margin-top:5px; color:#999;">Waiting for GPS...</div>
     </div>
 
-    <button class="btn btn-log" id="btnLog" onclick="openDefectModal()" disabled>⚠️ LOG DEFECT HERE</button>
-    
-    <div class="action-grid" style="margin-top:15px;">
-        <button class="btn btn-pdf" onclick="generatePDF()">📄 Export Report</button>
-        <button class="btn btn-reset" onclick="resetSurvey()">🔄 Clear All</button>
+    <div class="section-card" id="sectionCard">
+        <div class="sec-title" id="secTitle">SECTION --</div>
+        <div class="sec-row"><span>In-charge:</span> <strong id="secName">--</strong></div>
+        <div class="sec-row"><span>Phone:</span> <a href="" class="sec-phone" id="secPhoneLink">&#9742; <span id="secPhone">--</span></a></div>
+        <div class="sec-row"><span>PBMC Contractor:</span> <strong id="secPBMC" style="color:var(--green)">--</strong></div>
     </div>
+
+    <button class="btn btn-primary" id="btnTrack" onclick="toggleTracking()">Want Your Chainage Click Me</button>
     
-    <div id="logCounter" style="text-align:center; font-size:12px; color:#666;">Items Logged: 0</div>
+    <footer>Prepared by - <strong>Mukesh Kumar Kollepara</strong></footer>
+</div>
+
+<div class="nav-bar">
+    <button class="nav-item" onclick="toggleTracking()"><span>&#128205;</span>TRACK</button>
+    <button class="nav-item" onclick="openDefectModal()"><span>&#9888;</span>LOG DEFECT</button>
+    <button class="nav-item" onclick="generatePDF()"><span>&#128196;</span>REPORT</button>
+    <button class="nav-item" onclick="resetSurvey()" style="color:#ef4444"><span>&#128465;</span>CLEAR</button>
 </div>
 
 <div class="modal" id="defectModal">
     <div class="modal-content">
-        <h3 style="text-align:center; margin-bottom:15px; color:var(--blue);">Defect Details</h3>
-        
-        <div class="opt-group">
-            <span class="opt-label">LOCATION</span>
-            <div class="selector">
-                <div class="sel-btn" onclick="setOpt('side','LHS',this)">LHS</div>
-                <div class="sel-btn" onclick="setOpt('side','RHS',this)">RHS</div>
-                <div class="sel-btn" onclick="setOpt('side','Median',this)">MEDIAN</div>
-                <div class="sel-btn" onclick="setOpt('side','LSR',this)">LSR (Service)</div>
-                <div class="sel-btn" onclick="setOpt('side','RSR',this)">RSR (Service)</div>
-            </div>
+        <h3 style="text-align:center; margin-bottom:15px;">Log Road Defect</h3>
+        <div style="font-size:10px; margin-bottom:5px;">LOCATION SIDE</div>
+        <div class="selector">
+            <div class="sel-btn" onclick="setOpt('side','LHS',this)">LHS</div>
+            <div class="sel-btn" onclick="setOpt('side','RHS',this)">RHS</div>
+            <div class="sel-btn" onclick="setOpt('side','Median',this)">Median</div>
+            <div class="sel-btn" onclick="setOpt('side','LSR',this)">LSR (Svc)</div>
+            <div class="sel-btn" onclick="setOpt('side','RSR',this)">RSR (Svc)</div>
         </div>
-
-        <div class="opt-group">
-            <span class="opt-label">DEFECT TYPE</span>
-            <div class="selector" style="grid-template-columns: 1fr 1fr;">
-                <div class="sel-btn" onclick="setOpt('type','Sign Board Damaged',this)">Sign Board Damaged</div>
-                <div class="sel-btn" onclick="setOpt('type','Kerb Damaged',this)">Kerb Damaged</div>
-                <div class="sel-btn" onclick="setOpt('type','Kerb Paint Faded',this)">Kerb Paint Faded</div>
-                <div class="sel-btn" onclick="setOpt('type','Pothole',this)">Pothole</div>
-                <div class="sel-btn" onclick="setOpt('type','W-Beam Damaged',this)">W-Beam Damaged</div>
-                <div class="sel-btn" onclick="setOpt('type','Vegetation Growth',this)">Vegetation Growth</div>
-            </div>
+        <div style="font-size:10px; margin-bottom:5px;">DEFECT TYPE</div>
+        <div class="selector">
+            <div class="sel-btn" onclick="setOpt('type','Sign Board Damaged',this)">Sign Damaged</div>
+            <div class="sel-btn" onclick="setOpt('type','Kerb Damaged',this)">Kerb Damaged</div>
+            <div class="sel-btn" onclick="setOpt('type','Kerb Paint Faded',this)">Paint Faded</div>
+            <div class="sel-btn" onclick="setOpt('type','Pothole',this)">Pothole</div>
+            <div class="sel-btn" onclick="setOpt('type','W-Beam Damaged',this)">W-Beam</div>
+            <div class="sel-btn" onclick="setOpt('type','Vegetation',this)">Vegetation</div>
         </div>
-
-        <div class="opt-group">
-            <span class="opt-label">TYPE OF ENTRY</span>
-            <div class="selector">
-                <div class="sel-btn" id="btnSingle" onclick="setEntryMode('single')">Point Location</div>
-                <div class="sel-btn" id="btnStretch" onclick="setEntryMode('stretch')">Start Stretch</div>
-            </div>
-        </div>
-
-        <button class="btn btn-primary" onclick="saveDefect()" style="margin-top:10px;">Submit Entry</button>
-        <button class="btn" style="background:#eee; color:#333;" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveDefect()">Submit Defect</button>
+        <button class="btn" style="background:#eee; color:#333; margin:0;" onclick="closeModal()">Cancel</button>
     </div>
 </div>
 
-<footer id="appFooter">Prepared by - --</footer>
-
 <script>
-// --- PASTE FULL 4889 POINTS LIST HERE ---
+// --- PASTE YOUR FULL 4889 POINTS LIST HERE ---
 const CHAIN_PTS=[ 
 ["0+000",26.0617792,74.2991350],
 ["0+050",26.0619805,74.2986852],
@@ -5003,117 +5006,88 @@ const CHAIN_PTS=[
 ["244+250",24.7809487,73.0301838],
 ["244+300",24.7805202,73.0300376],
 ["244+350",24.7800894,73.0298870],
-["244+354",24.7800582,73.0298757],];
+["244+354",24.7800582,73.0298757], ];
 
-let watchId, currentCH = "--+---", isTracking = false, activeStretch = null;
-let visitLogs = JSON.parse(localStorage.getItem("survey_logs") || "[]");
-let userProfile = JSON.parse(localStorage.getItem("bpptpl_user") || '{"name":"User","desig":"Engineer"}');
-let currentEntry = { side: '', type: '', mode: 'single' };
+const SECTION_DATA = {
+    1: { name: "Mr. Sachin Gupta", phone: "8506878948", pbmc: "NGCD" },
+    2: { name: "Mr. Amit Khemwani", phone: "6375884003", pbmc: "Max Infra" },
+    3: { name: "Section Incharge", phone: "9529826416", pbmc: "PTC" },
+    4: { name: "Mr. Bhagwat Rathore", phone: "8619494508", pbmc: "Maa Ashapura" }
+};
 
-function checkUser() { 
-    document.getElementById("appFooter").innerHTML = `Surveyor: <strong>${userProfile.name}</strong>`; 
-    updateCounter();
-    startGPS();
+let watchId, currentCH = "--+---", isTracking = false, visitLogs = [];
+let currentEntry = { side: '', type: '' };
+
+function distM(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function startGPS() {
-    if (watchId) return;
-    watchId = navigator.geolocation.watchPosition(pos => {
-        let minD = Infinity;
-        for (let pt of CHAIN_PTS) {
-            let d = Math.sqrt(Math.pow(pos.coords.latitude-pt[1],2) + Math.pow(pos.coords.longitude-pt[2],2));
-            if (d < minD) { minD = d; currentCH = pt[0]; }
-        }
-        document.getElementById("chValue").textContent = currentCH;
-        document.getElementById("infoAcc").textContent = "GPS Active | ±" + pos.coords.accuracy.toFixed(1) + "m";
-        document.getElementById("btnLog").disabled = false;
-    }, null, {enableHighAccuracy: true});
+function updateSectionInfo(tag) {
+    const km = parseInt(tag.split('+')[0]);
+    let sNum = km >= 180 ? 4 : km >= 120 ? 3 : km >= 60 ? 2 : 1;
+    const data = SECTION_DATA[sNum];
+    document.getElementById("sectionCard").style.display = "block";
+    document.getElementById("secTitle").textContent = "SECTION " + sNum;
+    document.getElementById("secName").textContent = data.name;
+    document.getElementById("secPhone").textContent = data.phone;
+    document.getElementById("secPhoneLink").href = "tel:" + data.phone;
+    document.getElementById("secPBMC").textContent = data.pbmc;
 }
 
-function openDefectModal() {
-    if (activeStretch) {
-        if (confirm(`Finish stretch defect from ${activeStretch.start}?`)) {
-            const endKM = parseInt(currentCH.split('+')[0]);
-            const startKM = parseInt(activeStretch.start.split('+')[0]);
-            const length = Math.abs(parseInt(currentCH.replace('+','')) - parseInt(activeStretch.start.replace('+','')));
-            
-            activeStretch.end = currentCH;
-            activeStretch.length = length + " m";
-            visitLogs.push(activeStretch);
-            activeStretch = null;
-            saveAndRefresh();
-            document.getElementById("btnLog").textContent = "⚠️ LOG DEFECT HERE";
-            document.getElementById("btnLog").style.background = "#004a99";
-            return;
-        }
+function toggleTracking() {
+    const btn = document.getElementById("btnTrack");
+    if (isTracking) {
+        navigator.geolocation.clearWatch(watchId); isTracking = false;
+        btn.textContent = "Want Your Chainage Click Me"; btn.className = "btn btn-primary";
+    } else {
+        isTracking = true; btn.textContent = "Stop Tracking"; btn.className = "btn btn-stop";
+        watchId = navigator.geolocation.watchPosition(pos => {
+            let minD = Infinity, bestIdx = 0;
+            for (let i = 0; i < CHAIN_PTS.length; i++) {
+                let d = distM(pos.coords.latitude, pos.coords.longitude, CHAIN_PTS[i][1], CHAIN_PTS[i][2]);
+                if (d < minD) { minD = d; bestIdx = i; }
+            }
+            currentCH = CHAIN_PTS[bestIdx][0];
+            document.getElementById("chValue").textContent = currentCH;
+            document.getElementById("infoAcc").textContent = "Accuracy: ±" + pos.coords.accuracy.toFixed(1) + "m";
+            updateSectionInfo(currentCH);
+        }, null, {enableHighAccuracy: true});
     }
-    document.getElementById("defectModal").style.display = "flex";
 }
 
-function setOpt(key, val, el) {
-    currentEntry[key] = val;
+function openDefectModal() { if(!isTracking) return alert("Start tracking first!"); document.getElementById("defectModal").style.display = "flex"; }
+function closeModal() { document.getElementById("defectModal").style.display = "none"; }
+function setOpt(key, val, el) { 
+    currentEntry[key] = val; 
     el.parentElement.querySelectorAll('.sel-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
 }
 
-function setEntryMode(m) {
-    currentEntry.mode = m;
-    document.getElementById("btnSingle").classList.toggle('active', m==='single');
-    document.getElementById("btnStretch").classList.toggle('active', m==='stretch');
-}
-
 function saveDefect() {
-    if (!currentEntry.side || !currentEntry.type) return alert("Select Side and Type");
-    
-    if (currentEntry.mode === 'stretch') {
-        activeStretch = { 
-            type: currentEntry.type, side: currentEntry.side, 
-            start: currentCH, isStretch: true 
-        };
-        document.getElementById("btnLog").textContent = "🛑 STOP STRETCH AT " + currentCH;
-        document.getElementById("btnLog").style.background = "#ef4444";
-    } else {
-        visitLogs.push({ 
-            type: currentEntry.type, side: currentEntry.side, 
-            start: currentCH, end: '-', length: '-', isStretch: false 
-        });
-    }
-    saveAndRefresh();
+    if(!currentEntry.side || !currentEntry.type) return alert("Select Side & Type");
+    visitLogs.push({ ch: currentCH, ...currentEntry, time: new Date().toLocaleTimeString() });
+    alert("Logged: " + currentCH + " " + currentEntry.type);
     closeModal();
 }
 
-function saveAndRefresh() {
-    localStorage.setItem("survey_logs", JSON.stringify(visitLogs));
-    updateCounter();
-}
-
-function updateCounter() { document.getElementById("logCounter").textContent = "Items Logged: " + visitLogs.length; }
-function closeModal() { document.getElementById("defectModal").style.display = "none"; }
-function resetSurvey() { if(confirm("Delete all logged data?")) { visitLogs=[]; saveAndRefresh(); }}
-
 function generatePDF() {
+    if (visitLogs.length === 0) return alert("No defects logged!");
     const { jsPDF } = window.jspdf; const doc = new jsPDF();
-    doc.setFontSize(16); doc.text("BPPTPL HIGHWAY SURVEY REPORT", 14, 20);
-    doc.setFontSize(10); doc.text(`Surveyor: ${userProfile.name} | Date: ${new Date().toLocaleDateString()}`, 14, 28);
-    
+    doc.text("BPPTPL SURVEY REPORT", 14, 20);
     let y = 40;
-    doc.setFontSize(9);
-    doc.text("SN", 10, y); doc.text("Defect Type", 20, y); doc.text("Side", 70, y); doc.text("Chainage", 95, y); doc.text("Length", 130, y);
-    doc.line(10, y+2, 200, y+2);
-    y += 10;
-
     visitLogs.forEach((l, i) => {
-        let chDisp = l.isStretch ? `${l.start} to ${l.end}` : l.start;
-        doc.text((i+1).toString(), 10, y);
-        doc.text(l.type, 20, y);
-        doc.text(l.side, 70, y);
-        doc.text(chDisp, 95, y);
-        doc.text(l.length, 130, y);
-        y += 8;
+        doc.text(`${i+1}. CH: ${l.ch} | Side: ${l.side} | Defect: ${l.type}`, 14, y);
+        y += 10;
         if(y > 280) { doc.addPage(); y = 20; }
     });
-    doc.save(`Survey_Report_${userProfile.name}.pdf`);
+    doc.save("Survey_Report.pdf");
 }
+function resetSurvey() { if(confirm("Clear all logs?")) visitLogs = []; }
+function checkUser() {}
 </script>
 </body>
 </html>
