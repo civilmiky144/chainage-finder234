@@ -23,23 +23,23 @@ body{
     height: 100dvh;
 }
 
-/* CENTERED BRANDED HEADER */
+/* HORIZONTAL BRANDED HEADER */
 header {
     background: white;
-    padding: 15px 16px;
+    padding: 12px 16px;
     border-bottom: 4px solid var(--bppt-blue);
     display: flex;
-    flex-direction: column; /* Stacked for central alignment */
+    flex-direction: row; /* Horizontal alignment */
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    justify-content: center; /* Centered as a group */
+    gap: 15px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     flex-shrink: 0;
-    text-align: center;
 }
-.logo { height: 45px; width: auto; }
-.header-text h1 { margin: 0; font-size: 14px; color: var(--bppt-blue); text-transform: uppercase; line-height: 1.2; letter-spacing: 0.5px; }
-.header-text p { margin: 2px 0 0 0; font-size: 11px; color: var(--bppt-green); font-weight: bold; letter-spacing: 1px; }
+.logo { height: 48px; width: auto; }
+.header-text { text-align: left; } /* Text stays left-aligned relative to logo */
+.header-text h1 { margin: 0; font-size: 13px; color: var(--bppt-blue); text-transform: uppercase; line-height: 1.2; letter-spacing: 0.3px; }
+.header-text p { margin: 1px 0 0 0; font-size: 10px; color: var(--bppt-green); font-weight: bold; letter-spacing: 0.5px; }
 
 .scroll-area { flex: 1; overflow-y: auto; padding: 20px; }
 
@@ -100,7 +100,6 @@ header {
 .ibox-lbl { font-size: 9px; color: #6b7280; font-weight: bold; margin-bottom: 4px; }
 .ibox-val { font-size: 13px; color: var(--bppt-blue); font-weight: 800; }
 
-/* ACTION BUTTON */
 .btn {
     width: 100%;
     padding: 18px;
@@ -118,7 +117,6 @@ header {
 .btn-stop { background: #ef4444; color: white; }
 .btn:active { transform: scale(0.96); }
 
-/* FOOTER */
 footer {
     padding: 15px;
     background: white;
@@ -187,11 +185,11 @@ footer {
 <div class="toast" id="toast"></div>
 
 <script>
-// FULL DATASET 
+// --- YOUR FULL 4889 POINTS HERE ---
 const CHAIN_PTS=[
 ["0+000",26.0617792,74.2991350],
 ["0+050",26.0619805,74.2986852],
-// ... PASTE YOUR REMAINING 4000+ POINTS HERE ...
+// ... rest of points ...
 ["244+354",24.7800582,73.0298757]
 ];
 
@@ -213,8 +211,8 @@ function distM(lat1, lon1, lat2, lon2) {
     return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function updateSectionUI(chainageStr) {
-    const km = parseInt(chainageStr.split('+')[0]);
+function updateSectionUI(chainageTag) {
+    const km = parseInt(chainageTag.split('+')[0]);
     let secNum = 1;
     if (km >= 180) secNum = 4;
     else if (km >= 120) secNum = 3;
@@ -222,7 +220,7 @@ function updateSectionUI(chainageStr) {
 
     const data = SECTION_DATA[secNum];
     document.getElementById("sectionCard").style.display = "block";
-    document.getElementById("secTitle").textContent = "SECTION " + secNum + " (Km " + (secNum === 1 ? "0" : (secNum-1)*60) + " to " + (secNum === 4 ? "End" : data.limit) + ")";
+    document.getElementById("secTitle").textContent = "SECTION " + secNum;
     document.getElementById("secName").textContent = data.name;
     document.getElementById("secPhone").textContent = data.phone;
     document.getElementById("secLink").href = "tel:" + data.phone;
@@ -236,28 +234,29 @@ function toggleTracking() {
         btn.className = "btn btn-primary";
         document.getElementById("sectionCard").style.display = "none";
         isTracking = false;
-        toast("Tracking stopped");
     } else {
-        if (!navigator.geolocation) { alert("GPS not supported"); return; }
         isTracking = true;
         btn.textContent = "Stop Tracking";
         btn.className = "btn btn-stop";
-        document.getElementById("chDist").textContent = "Your Chainage is on the way...";
         
         watchId = navigator.geolocation.watchPosition(pos => {
             let minD = Infinity;
-            let nearest = CHAIN_PTS[0];
-            for (let pt of CHAIN_PTS) {
-                let d = distM(pos.coords.latitude, pos.coords.longitude, pt[1], pt[2]);
-                if (d < minD) { minD = d; nearest = pt; }
+            let nearestTag = "--+---";
+            
+            for (let i = 0; i < CHAIN_PTS.length; i++) {
+                let d = distM(pos.coords.latitude, pos.coords.longitude, CHAIN_PTS[i][1], CHAIN_PTS[i][2]);
+                if (d < minD) {
+                    minD = d;
+                    nearestTag = CHAIN_PTS[i][0]; 
+                }
             }
-            document.getElementById("chValue").textContent = nearest[0];
+            
+            document.getElementById("chValue").textContent = nearestTag;
             document.getElementById("infoAcc").textContent = "±" + pos.coords.accuracy.toFixed(1) + "m";
             document.getElementById("infoDist").textContent = minD.toFixed(1) + "m";
             document.getElementById("chDist").textContent = minD.toFixed(1) + " m away from Project Highway";
-            updateSectionUI(nearest[0]);
-        }, err => toast("GPS Error: " + err.message), 
-        {enableHighAccuracy: true, maximumAge: 1000});
+            updateSectionUI(nearestTag);
+        }, err => toast("GPS Error"), {enableHighAccuracy: true});
     }
 }
 
