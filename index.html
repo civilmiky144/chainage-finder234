@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0f1e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chainage">
+<title>Chainage Finder</title>
+
+<style>
+:root{--bg:#0a0f1e;--surface:#111827;--raised:#1a2438;--border:#1e2d45;--orange:#f97316;--orange2:#fb923c;--text:#e2e8f0;--muted:#64748b;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{position:relative;color:var(--text);font-family:'Courier New',Courier,monospace;display:flex;flex-direction:column;height:100vh;height:100dvh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(249,115,22,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(249,115,22,.025) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0}
+
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;z-index:1;transition:transform .3s ease,opacity .3s ease}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none}
+
+.topbar{display:flex;align-items:center;padding:14px 16px 10px;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.topbar-title{font-family:'Arial Black',Arial,sans-serif;font-size:26px;letter-spacing:3px;color:var(--orange);flex:1}
+.gps-pill{display:flex;align-items:center;gap:6px;background:var(--raised);border-radius:20px;padding:5px 10px 5px 8px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .3s}
+.dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+.dot.warn{background:var(--yellow)}
+.dot.err{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.gps-txt{font-size:10px;color:var(--muted);letter-spacing:1px}
+
+.scroll{flex:1;overflow-y:auto;padding:14px 14px 84px;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+
+.ch-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 20px 18px;margin-bottom:12px;position:relative;overflow:hidden}
+.ch-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--orange2),transparent)}
+.lbl{font-size:9px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+.ch-km{font-family:'Arial Black',Arial,sans-serif;font-size:clamp(56px,18vw,88px);color:var(--orange);line-height:.92;letter-spacing:2px;transition:color .2s}
+.ch-km.flash{color:var(--yellow)}
+.ch-m{font-size:16px;color:var(--muted);margin-top:6px;margin-bottom:14px}
+.prog-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--orange),var(--orange2));width:0%;transition:width .6s ease}
+.ch-sub{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--muted)}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.ibox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.ibox-lbl{font-size:8px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.ibox-val{font-size:13px;color:var(--text)}
+
+.aln-badge{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.aln-icon{font-size:22px}
+.aln-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.aln-meta{font-size:10px;color:var(--muted);margin-top:2px}
+
+.btn{width:100%;padding:14px;border-radius:10px;border:none;font-family:'Courier New',Courier,monospace;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-bottom:8px;display:block;-webkit-appearance:none}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-stop{background:var(--red);color:#fff}
+.btn-ghost{background:var(--raised);color:var(--text);border:1px solid var(--border)}
+.btn-ghost.dim{color:var(--muted)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.btn-row .btn{margin-bottom:0}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px);z-index:50}
+.nav-btn{flex:1;padding:10px 0 8px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-icon{font-size:20px;line-height:1}
+.nav-lbl{font-size:9px;letter-spacing:1px;color:var(--muted);font-family:'Courier New',Courier,monospace;transition:color .2s}
+.nav-btn.active .nav-lbl{color:var(--orange)}
+
+.toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:9px 18px;font-size:12px;opacity:0;transition:all .25s;z-index:200;white-space:nowrap;pointer-events:none;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.modal-overlay.open .modal-box{transform:translateY(0)}
+.modal-title{font-size:13px;font-weight:600;margin-bottom:16px;color:var(--orange);letter-spacing:1px}
+.modal-input{width:100%;background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'Courier New',Courier,monospace;font-size:14px;outline:none;margin-bottom:12px}
+.modal-input:focus{border-color:var(--orange)}
+
+.pt-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 14px 12px;margin-bottom:8px;position:relative}
+.pt-ch{font-size:18px;font-weight:600;color:var(--orange)}
+.pt-chm{font-size:11px;color:var(--muted);margin-top:1px}
+.pt-note{font-size:13px;color:var(--text);margin-top:6px;line-height:1.4}
+.pt-meta{font-size:10px;color:var(--muted);margin-top:6px}
+.pt-del{position:absolute;top:12px;right:12px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'Courier New',Courier,monospace;transition:all .15s}
+.pt-del:active{background:var(--red);color:#fff;border-color:var(--red)}
+.pts-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.pts-count{flex:1;font-size:11px;color:var(--muted)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px;line-height:1.9}
+.empty-icon{font-size:44px;display:block;margin-bottom:12px}
+
+.help-sect{margin-bottom:22px}
+.help-title{font-size:9px;letter-spacing:4px;color:var(--orange);text-transform:uppercase;margin-bottom:10px}
+.help-step{display:flex;gap:12px;margin-bottom:8px;background:var(--raised);border-radius:8px;padding:10px 12px;align-items:flex-start}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--orange);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-txt{font-size:12px;color:var(--text);line-height:1.6}
+.help-note{font-size:12px;color:var(--muted);line-height:1.7;background:var(--raised);border-radius:8px;padding:12px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<!-- ═══ SCREEN: CHAINAGE ═══ -->
+<div class="screen" id="scMain">
+  <div class="topbar">
+    <span class="topbar-title">CHAINAGE</span>
+    <div class="gps-pill">
+      <div class="dot" id="gpsDot"></div>
+      <span class="gps-txt" id="gpsTxt">OFF</span>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="ch-card">
+      <div class="lbl">Current Chainage</div>
+      <div class="ch-km" id="chKm">--+---</div>
+      <div class="ch-m" id="chM">-- m</div>
+      <div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
+      <div class="ch-sub">
+        <span id="chSub">Load a KML file to begin</span>
+        <span id="chPct"></span>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="ibox"><div class="ibox-lbl">GPS Accuracy</div><div class="ibox-val" id="infoAcc">--</div></div>
+      <div class="ibox"><div class="ibox-lbl">Dist to Road</div><div class="ibox-val" id="infoDist">--</div></div>
+      <div class="ibox"><div class="ibox-lbl">Latitude</div><div class="ibox-val" id="infoLat">--</div></div>
+      <div class="ibox"><div class="ibox-lbl">Longitude</div><div class="ibox-val" id="infoLon">--</div></div>
+    </div>
+
+    <div class="aln-badge">
+      <span class="aln-icon">📂</span>
+      <div style="min-width:0">
+        <div class="aln-name" id="alnName">No alignment loaded</div>
+        <div class="aln-meta" id="alnMeta">Tap Load KML below</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btnTrack" onclick="toggleTracking()">▶ Start Tracking</button>
+    <button class="btn btn-ghost" id="btnMark" onclick="openMarkModal()" disabled>📍 Mark Point Here</button>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="document.getElementById('kmlPicker').click()">📂 Load KML</button>
+      <button class="btn btn-ghost dim" onclick="clearKML()">✕ Clear KML</button>
+    </div>
+    <input type="file" id="kmlPicker" accept=".kml,*/*" style="display:none" onchange="handleFile(this)">
+  </div>
+</div>
+
+<!-- ═══ SCREEN: SAVED POINTS ═══ -->
+<div class="screen hidden" id="scSaved">
+  <div class="topbar">
+    <span class="topbar-title">SAVED POINTS</span>
+    <button class="btn btn-ghost" onclick="exportCSV()" style="width:auto;padding:6px 14px;margin:0;font-size:10px;letter-spacing:1px">Export CSV</button>
+  </div>
+  <div class="scroll" id="savedList"></div>
+</div>
+
+<!-- ═══ SCREEN: HELP ═══ -->
+<div class="screen hidden" id="scHelp">
+  <div class="topbar"><span class="topbar-title">HOW TO USE</span></div>
+  <div class="scroll">
+    <div class="help-sect">
+      <div class="help-title">Add to Home Screen (Android)</div>
+      <div class="help-step"><div class="step-num">1</div><div class="step-txt">Open this HTML file in <strong>Chrome</strong> on your Android phone</div></div>
+      <div class="help-step"><div class="step-num">2</div><div class="step-txt">Tap the <strong>⋮ three-dot menu</strong> at the top right of Chrome</div></div>
+      <div class="help-step"><div class="step-num">3</div><div class="step-txt">Tap <strong>"Add to Home Screen"</strong> then tap <strong>Add</strong></div></div>
+      <div class="help-step"><div class="step-num">4</div><div class="step-txt">The icon appears on your home screen — opens like a real app!</div></div>
+    </div>
+    <div class="help-sect">
+      <div class="help-title">Preparing Your KML File</div>
+      <div class="help-note">Export your highway centreline from <strong>AutoCAD Civil 3D</strong>, <strong>QGIS</strong>, or <strong>MX Road</strong> as a KML file. The alignment must be a single continuous <strong>LineString</strong>. The app will automatically pick the longest coordinate list if there are multiple elements.</div>
+    </div>
+    <div class="help-sect">
+      <div class="help-title">Getting Your Chainage</div>
+      <div class="help-step"><div class="step-num">1</div><div class="step-txt">Tap <strong>📂 Load KML</strong> — your alignment is saved and reloads automatically next time</div></div>
+      <div class="help-step"><div class="step-num">2</div><div class="step-txt">Tap <strong>▶ Start Tracking</strong> and allow location permission when prompted</div></div>
+      <div class="help-step"><div class="step-num">3</div><div class="step-txt">Stand still for 30 seconds outdoors to let the GPS fix stabilise</div></div>
+      <div class="help-step"><div class="step-num">4</div><div class="step-txt">The chainage updates live as you move. Tap <strong>📍 Mark Point Here</strong> to save a location with a note</div></div>
+    </div>
+    <div class="help-sect">
+      <div class="help-title">Reading the Display</div>
+      <div class="help-note">
+        <strong style="color:var(--orange)">3+450</strong> = km+m format (3 km 450 m from start of alignment)<br>
+        <strong style="color:var(--text)">3450 m</strong> = same value in plain metres<br>
+        <strong>Dist to Road</strong> = perpendicular distance from you to the centreline<br>
+        <strong>Progress bar</strong> = how far along the full alignment you are<br><br>
+        🟢 Green dot = GPS &lt;10 m accuracy &nbsp;·&nbsp; 🟡 Yellow = &lt;25 m &nbsp;·&nbsp; 🔴 Red = poor
+      </div>
+    </div>
+    <div class="help-sect">
+      <div class="help-title">Saved Points &amp; Export</div>
+      <div class="help-note">All marked points are stored on your phone permanently. Go to the <strong>Saved</strong> tab to view them. Tap <strong>Export CSV</strong> to download — open in Excel or import into any GIS software.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BOTTOM NAV ═══ -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="navMain" onclick="showScreen('main')">
+    <span class="nav-icon">📍</span><span class="nav-lbl">CHAINAGE</span>
+  </button>
+  <button class="nav-btn" id="navSaved" onclick="showScreen('saved')">
+    <span class="nav-icon">📋</span><span class="nav-lbl">SAVED</span>
+  </button>
+  <button class="nav-btn" id="navHelp" onclick="showScreen('help')">
+    <span class="nav-icon">❓</span><span class="nav-lbl">HELP</span>
+  </button>
+</nav>
+
+<!-- ═══ MARK MODAL ═══ -->
+<div class="modal-overlay" id="markModal" onclick="modalBgClick(event)">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">MARK POINT @ --+---</div>
+    <input class="modal-input" id="markNote" type="text" placeholder="Note: culvert, crack, IL check, pothole…" maxlength="120" autocomplete="off">
+    <button class="btn btn-primary" onclick="savePoint()">💾 Save Point</button>
+    <button class="btn btn-ghost dim" style="margin-bottom:0" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────
+let aln = null;
+let watchId = null;
+let isTracking = false;
+let lastCh = -1, lastLat = 0, lastLon = 0;
+
+// ── Screen Navigation ─────────────────────────────
+function showScreen(name) {
+  const map = {main:'scMain', saved:'scSaved', help:'scHelp'};
+  const nav = {main:'navMain', saved:'navSaved', help:'navHelp'};
+  Object.keys(map).forEach(k => {
+    document.getElementById(map[k]).classList.toggle('hidden', k !== name);
+    document.getElementById(nav[k]).classList.toggle('active', k === name);
+  });
+  if (name === 'saved') renderSaved();
+}
+
+// ── Haversine distance ────────────────────────────
+function hav(a, b) {
+  const R = 6371000;
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLon = (b.lon - a.lon) * Math.PI / 180;
+  const x = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+
+function buildChainages(pts) {
+  const c = [0];
+  for (let i = 1; i < pts.length; i++) c.push(c[i-1] + hav(pts[i-1], pts[i]));
+  return c;
+}
+
+// ── Find chainage from GPS position ───────────────
+function findChainage(lat, lon) {
+  if (!aln) return null;
+  const {points: pts, chainages: chs} = aln;
+  let bestDist = Infinity, bestCh = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const A = pts[i], B = pts[i+1];
+    const ax = B.lat-A.lat, ay = B.lon-A.lon;
+    const bx = lat-A.lat,   by = lon-A.lon;
+    const s2 = ax*ax + ay*ay;
+    const t  = s2 ? Math.max(0, Math.min(1, (bx*ax + by*ay) / s2)) : 0;
+    const d  = hav({lat, lon}, {lat: A.lat+t*ax, lon: A.lon+t*ay});
+    if (d < bestDist) { bestDist = d; bestCh = chs[i] + t * hav(A, B); }
+  }
+  return {ch: bestCh, dist: bestDist};
+}
+
+// ── Formatting ────────────────────────────────────
+function fmtKM(m)   { return `${Math.floor(m/1000)}+${String(Math.round(m%1000)).padStart(3,'0')}`; }
+function fmtM(m)    { return `${Math.round(m)} m`; }
+function fmtDist(m) { return m < 1000 ? `${m.toFixed(1)} m` : `${(m/1000).toFixed(2)} km`; }
+
+// ── KML Parsing ───────────────────────────────────
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('alnName').textContent = 'Parsing…';
+  const reader = new FileReader();
+  reader.onload = e => parseKML(e.target.result, file.name);
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function parseKML(text, filename) {
+  try {
+    const doc = new DOMParser().parseFromString(text, 'text/xml');
+    const blocks = [...doc.querySelectorAll('coordinates')];
+    if (!blocks.length) throw new Error('No <coordinates> found.\nCheck your KML has a LineString.');
+
+    // Use the block with the most content (the alignment)
+    const raw = blocks.sort((a, b) => b.textContent.length - a.textContent.length)[0].textContent.trim();
+
+    const pts = [];
+    for (const tuple of raw.split(/\s+/)) {
+      const p = tuple.split(',');
+      if (p.length >= 2) {
+        const lon = parseFloat(p[0]), lat = parseFloat(p[1]);
+        if (!isNaN(lat) && !isNaN(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180)
+          pts.push({lat, lon});
+      }
+    }
+
+    if (pts.length < 2) throw new Error(`Only ${pts.length} point(s) found — need at least 2.`);
+
+    const chainages = buildChainages(pts);
+    const nameEl = doc.querySelector('Document > name, Folder > name, Placemark > name');
+    aln = {
+      name: (nameEl ? nameEl.textContent.trim() : null) || filename.replace(/\.kml$/i, ''),
+      points: pts,
+      chainages,
+      total: chainages[chainages.length - 1]
+    };
+
+    saveAlnToStorage();
+    document.getElementById('alnName').textContent = aln.name;
+    document.getElementById('alnMeta').textContent = `${pts.length} nodes · Total ${fmtKM(aln.total)}`;
+    toast(`✓ Loaded ${pts.length} points · ${fmtKM(aln.total)}`);
+
+  } catch(err) {
+    document.getElementById('alnName').textContent = 'Load failed';
+    document.getElementById('alnMeta').textContent = err.message.split('\n')[0];
+    toast('⚠ ' + err.message.split('\n')[0]);
+  }
+}
+
+// ── GPS Tracking ──────────────────────────────────
+function toggleTracking() {
+  isTracking ? stopTracking() : startTracking();
+}
+
+function startTracking() {
+  if (!navigator.geolocation) { toast('GPS not supported in this browser'); return; }
+  isTracking = true;
+  const btn = document.getElementById('btnTrack');
+  btn.textContent = '■ Stop Tracking';
+  btn.className = 'btn btn-stop';
+  setGPS('warn', 'WAIT');
+
+  watchId = navigator.geolocation.watchPosition(
+    pos => {
+      const {latitude: lat, longitude: lon, accuracy: acc} = pos.coords;
+      lastLat = lat; lastLon = lon;
+
+      document.getElementById('infoLat').textContent = lat.toFixed(6);
+      document.getElementById('infoLon').textContent = lon.toFixed(6);
+      document.getElementById('infoAcc').textContent = `±${acc.toFixed(1)} m`;
+
+      setGPS(acc < 10 ? 'live' : acc < 25 ? 'warn' : 'err',
+             acc < 10 ? 'LIVE' : acc < 25 ? 'FAIR' : 'POOR');
+
+      if (aln) {
+        const res = findChainage(lat, lon);
+        if (res) {
+          lastCh = res.ch;
+          // Flash update
+          const el = document.getElementById('chKm');
+          el.classList.add('flash');
+          setTimeout(() => el.classList.remove('flash'), 200);
+
+          document.getElementById('chKm').textContent = fmtKM(res.ch);
+          document.getElementById('chM').textContent  = fmtM(res.ch);
+          document.getElementById('infoDist').textContent = fmtDist(res.dist);
+          document.getElementById('chSub').textContent = `${fmtDist(res.dist)} to centreline`;
+          const pct = Math.min(100, res.ch / aln.total * 100);
+          document.getElementById('progFill').style.width = pct + '%';
+          document.getElementById('chPct').textContent = pct.toFixed(1) + '%';
+          document.getElementById('btnMark').disabled = false;
+        }
+      } else {
+        document.getElementById('chSub').textContent = 'Load a KML file to get chainage';
+      }
+    },
+    err => {
+      setGPS('err', 'ERR');
+      const msgs = ['', 'Permission denied — allow location in browser settings', 'Position unavailable', 'GPS timeout'];
+      toast(msgs[err.code] || 'GPS error');
+    },
+    {enableHighAccuracy: true, maximumAge: 1500, timeout: 15000}
+  );
+}
+
+function stopTracking() {
+  if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  isTracking = false;
+  document.getElementById('btnTrack').textContent = '▶ Start Tracking';
+  document.getElementById('btnTrack').className = 'btn btn-primary';
+  document.getElementById('btnMark').disabled = true;
+  setGPS('', 'OFF');
+}
+
+function setGPS(state, label) {
+  const dot = document.getElementById('gpsDot');
+  dot.className = 'dot' + (state ? ' ' + state : '');
+  document.getElementById('gpsTxt').textContent = label;
+}
+
+// ── Clear KML ─────────────────────────────────────
+function clearKML() {
+  if (aln && !confirm('Remove loaded alignment?')) return;
+  aln = null;
+  localStorage.removeItem('chainage_aln');
+  document.getElementById('alnName').textContent = 'No alignment loaded';
+  document.getElementById('alnMeta').textContent = 'Tap Load KML below';
+  document.getElementById('chKm').textContent = '--+---';
+  document.getElementById('chM').textContent = '-- m';
+  document.getElementById('chSub').textContent = 'Load a KML file to begin';
+  document.getElementById('chPct').textContent = '';
+  document.getElementById('progFill').style.width = '0%';
+  document.getElementById('infoDist').textContent = '--';
+  toast('Alignment cleared');
+}
+
+// ── Mark Point Modal ──────────────────────────────
+function openMarkModal() {
+  if (!aln || lastCh < 0) { toast('Waiting for GPS fix'); return; }
+  document.getElementById('modalTitle').textContent = `MARK POINT @ ${fmtKM(lastCh)}  (${fmtM(lastCh)})`;
+  document.getElementById('markNote').value = '';
+  document.getElementById('markModal').classList.add('open');
+  setTimeout(() => document.getElementById('markNote').focus(), 350);
+}
+function closeModal() { document.getElementById('markModal').classList.remove('open'); }
+function modalBgClick(e) { if (e.target.id === 'markModal') closeModal(); }
+
+function savePoint() {
+  const note = document.getElementById('markNote').value.trim();
+  const pt = {
+    id: Date.now(),
+    label: fmtKM(lastCh),
+    metres: Math.round(lastCh),
+    note: note || '(no note)',
+    lat: lastLat, lon: lastLon,
+    time: new Date().toLocaleString()
+  };
+  const list = loadPoints();
+  list.unshift(pt);
+  localStorage.setItem('chainage_pts', JSON.stringify(list));
+  closeModal();
+  toast(`📍 Saved: ${pt.label}`);
+}
+
+// ── Saved Points ──────────────────────────────────
+function loadPoints() {
+  try { return JSON.parse(localStorage.getItem('chainage_pts') || '[]'); } catch { return []; }
+}
+
+function deletePoint(id) {
+  const list = loadPoints().filter(p => p.id !== id);
+  localStorage.setItem('chainage_pts', JSON.stringify(list));
+  renderSaved();
+  toast('Point deleted');
+}
+
+function clearAllPoints() {
+  if (!confirm('Delete all saved points?')) return;
+  localStorage.removeItem('chainage_pts');
+  renderSaved();
+}
+
+function renderSaved() {
+  const list = loadPoints();
+  const el = document.getElementById('savedList');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><span class="empty-icon">📍</span>No saved points yet.<br>Start tracking, then tap<br><strong style="color:var(--text)">📍 Mark Point Here</strong></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="pts-header">
+      <span class="pts-count">${list.length} point${list.length>1?'s':''} saved</span>
+      <button class="btn btn-ghost dim" onclick="clearAllPoints()" style="width:auto;padding:5px 12px;margin:0;font-size:10px">Clear All</button>
+    </div>
+    ${list.map(p => `
+      <div class="pt-card">
+        <button class="pt-del" onclick="deletePoint(${p.id})">✕ Del</button>
+        <div class="pt-ch">${p.label}</div>
+        <div class="pt-chm">${p.metres} m</div>
+        <div class="pt-note">${esc(p.note)}</div>
+        <div class="pt-meta">📍 ${p.lat.toFixed(6)}, ${p.lon.toFixed(6)} &nbsp;·&nbsp; ${p.time}</div>
+      </div>`).join('')}`;
+}
+
+function exportCSV() {
+  const list = loadPoints();
+  if (!list.length) { toast('No points to export'); return; }
+  const rows = ['Chainage (km+m),Chainage (m),Note,Latitude,Longitude,Date/Time'];
+  list.forEach(p => rows.push(`"${p.label}","${p.metres}","${p.note.replace(/"/g,'""')}","${p.lat}","${p.lon}","${p.time}"`));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([rows.join('\n')], {type:'text/csv'}));
+  a.download = 'chainage_points.csv';
+  a.click();
+  toast('CSV downloaded');
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Persistence ───────────────────────────────────
+function saveAlnToStorage() {
+  try { localStorage.setItem('chainage_aln', JSON.stringify(aln)); } catch {}
+}
+
+function loadAlnFromStorage() {
+  try {
+    const d = JSON.parse(localStorage.getItem('chainage_aln'));
+    if (d && d.points && d.points.length >= 2) {
+      aln = d;
+      document.getElementById('alnName').textContent = aln.name;
+      document.getElementById('alnMeta').textContent = `${aln.points.length} nodes · Total ${fmtKM(aln.total)}`;
+      toast('✓ Previous alignment restored');
+    }
+  } catch {}
+}
+
+// ── Toast ─────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// ── Init ──────────────────────────────────────────
+loadAlnFromStorage();
+</script>
+</body>
+</html>
