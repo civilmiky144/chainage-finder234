@@ -5094,7 +5094,7 @@ function toggleTracking() {
     const btn = document.getElementById("btnTrack");
     if (isTracking) {
         navigator.geolocation.clearWatch(watchId);
-        btn.textContent = "Start Tracking";
+        btn.textContent = "Want Your Chainage Click Me";
         btn.className = "btn btn-primary";
         isTracking = false;
         toast("Tracking stopped");
@@ -5103,14 +5103,14 @@ function toggleTracking() {
         isTracking = true;
         btn.textContent = "Stop Tracking";
         btn.className = "btn btn-stop";
-        document.getElementById("chDist").textContent = "Acquiring GPS fix...";
+        document.getElementById("chDist").textContent = "Your Chainage is on the way...";
         
         watchId = navigator.geolocation.watchPosition(pos => {
             const res = findNearest(pos.coords.latitude, pos.coords.longitude);
             document.getElementById("chValue").textContent = res.name;
             document.getElementById("infoAcc").textContent = "±" + pos.coords.accuracy.toFixed(1) + "m";
             document.getElementById("infoDist").textContent = res.dist.toFixed(1) + "m";
-            document.getElementById("chDist").textContent = res.dist.toFixed(1) + "m from alignment point";
+            document.getElementById("chDist").textContent = res.dist.toFixed(1) + " m away from Project Highway";
             document.getElementById("btnMark").disabled = false;
         }, err => toast("GPS Error: " + err.message), 
         {enableHighAccuracy: true, maximumAge: 1000});
