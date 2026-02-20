@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#004a99">
-<title>BPPTPL Chainage Finder</title>
+<title>BPPTPL Site Tracker</title>
 <style>
 :root{ --blue: #004a99; --green: #28a745; --orange: #FF8C00; --bg: #f4f7f6; }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -26,12 +26,12 @@ header {
 .label { font-size:10px; letter-spacing:2px; color:#666; margin-bottom:10px; font-weight:bold; text-transform:uppercase; }
 #chValue { font-size:14vw; font-weight:900; color:var(--orange); font-family:monospace; white-space:nowrap; }
 
-.section-card { background:#eef2ff; border:1px solid #c7d2fe; border-radius:15px; padding:15px; margin-bottom:15px; display:none; }
+.section-card { background:#eef2ff; border:1px solid #c7d2fe; border-radius:15px; padding:12px; margin-bottom:15px; display:none; }
 .sec-title { font-size:14px; font-weight:800; color:var(--blue); border-bottom:1px solid #c7d2fe; padding-bottom:5px; margin-bottom:10px; text-align:center; }
 .sec-detail { font-size:13px; margin:4px 0; }
 .sec-phone { color:var(--blue); text-decoration:none; font-weight:bold; display:inline-flex; align-items:center; gap:8px; margin-top:5px; }
 
-.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px; }
+.stats-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px; }
 .ibox { background:white; border:1px solid #ddd; padding:8px; border-radius:10px; text-align:center; }
 .ibox-lbl { font-size:8px; color:#888; font-weight:bold; }
 .ibox-val { font-size:11px; font-weight:bold; color:var(--blue); }
@@ -40,7 +40,7 @@ header {
 .btn-primary { background:var(--blue); color:white; }
 .btn-stop { background:#ef4444; color:white; }
 
-footer { padding:12px; background:white; text-align:center; border-top:1px solid #e5e7eb; font-size:11px; }
+footer { padding:10px; background:white; text-align:center; border-top:1px solid #e5e7eb; font-size:11px; }
 </style>
 </head>
 <body>
@@ -49,7 +49,7 @@ footer { padding:12px; background:white; text-align:center; border-top:1px solid
     <img src="1000678935.png" alt="Logo" class="logo">
     <div class="header-text">
         <h1>Beawar Pali Pindwara Tollway</h1>
-        <p>MAINTENANCE DEPARTMENT Updated on 2:09</p>
+        <p>MAINTENANCE DEPARTMENT Version Updated at 2:12 A.M.</p>
     </div>
 </header>
 
@@ -63,27 +63,24 @@ footer { padding:12px; background:white; text-align:center; border-top:1px solid
     <div class="section-card" id="sectionCard">
         <div class="sec-title" id="secTitle">SECTION --</div>
         <div class="sec-detail">In-charge: <strong id="secName">--</strong></div>
-        <a id="secLink" class="sec-phone">&#9742; <span id="secPhone">--</span></a>
+        <div class="sec-phone">&#9742; <span id="secPhone">--</span></div>
     </div>
 
     <div class="stats-grid">
         <div class="ibox"><div class="ibox-lbl">ACCURACY</div><div class="ibox-val" id="infoAcc">--</div></div>
-        <div class="ibox"><div class="ibox-lbl">DIST TO POINT</div><div class="ibox-val" id="infoDist">--</div></div>
+        <div class="ibox"><div class="ibox-lbl">DIST TO PT</div><div class="ibox-val" id="infoDist">--</div></div>
     </div>
 
-    <button class="btn btn-primary" id="btnTrack" onclick="toggleTracking()">Start Tracking</button>
+    <button class="btn btn-primary" id="btnTrack" onclick="toggleTracking()">Want Your Chainage Click Me</button>
 </div>
 
-<footer>
-    Prepared by - <strong>Mukesh Kumar Kollepara</strong> (Sr.Manager)
-</footer>
+<footer>Prepared by - <strong>Mukesh Kumar Kollepara</strong> (Sr.Manager)</footer>
 
 <script>
 // --- PASTE YOUR FULL 4889 POINTS LIST HERE ---
 const CHAIN_PTS=[
 ["0+000",26.0617792,74.2991350],
 ["0+050",26.0619805,74.2986852],
-// ... PASTE REMAINING POINTS HERE ...
 ["244+354",24.7800582,73.0298757]
 ];
 
@@ -96,22 +93,20 @@ const SECTION_DATA = {
 
 let isTracking = false, watchId = null;
 
-// High-Precision Haversine Distance
+// High-Precision Haversine
 function distM(lat1, lon1, lat2, lon2) {
-    const R = 6371000; 
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+    var R = 6371000;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
-function updateUI(lat, lon, acc) {
+function processGPS(lat, lon, acc) {
     let minD = Infinity;
-    let nearestTag = "--+---";
+    let nearestTag = "Searching...";
 
+    // 1. STRICT TAG LOOKUP (This is the worked logic)
     for (let i = 0; i < CHAIN_PTS.length; i++) {
         let d = distM(lat, lon, CHAIN_PTS[i][1], CHAIN_PTS[i][2]);
         if (d < minD) {
@@ -120,19 +115,27 @@ function updateUI(lat, lon, acc) {
         }
     }
 
+    // 2. UPDATE MAIN DISPLAY
     document.getElementById("chValue").textContent = nearestTag;
     document.getElementById("infoAcc").textContent = "±" + acc.toFixed(1) + "m";
     document.getElementById("infoDist").textContent = minD.toFixed(1) + "m";
-    document.getElementById("chDist").textContent = minD.toFixed(1) + "m from Alignment";
+    document.getElementById("chDist").textContent = minD.toFixed(1) + "m from CL";
 
-    const km = parseInt(nearestTag.split('+')[0]);
-    let sNum = km >= 180 ? 4 : km >= 120 ? 3 : km >= 60 ? 2 : 1;
-    const sData = SECTION_DATA[sNum];
-    document.getElementById("sectionCard").style.display = "block";
-    document.getElementById("secTitle").textContent = "SECTION " + sNum;
-    document.getElementById("secName").textContent = sData.name;
-    document.getElementById("secPhone").textContent = sData.phone;
-    document.getElementById("secLink").href = "tel:" + sData.phone;
+    // 3. SEPARATE SECTION LOGIC (Extract number from string safely)
+    try {
+        const kmPart = nearestTag.split('+')[0];
+        const kmNum = parseInt(kmPart);
+        let sNum = 1;
+        if (kmNum >= 180) sNum = 4;
+        else if (kmNum >= 120) sNum = 3;
+        else if (kmNum >= 60) sNum = 2;
+
+        const sData = SECTION_DATA[sNum];
+        document.getElementById("sectionCard").style.display = "block";
+        document.getElementById("secTitle").textContent = "SECTION " + sNum;
+        document.getElementById("secName").textContent = sData.name;
+        document.getElementById("secPhone").textContent = sData.phone;
+    } catch(e) { console.log("Section Error"); }
 }
 
 function toggleTracking() {
@@ -140,7 +143,7 @@ function toggleTracking() {
     if (isTracking) {
         navigator.geolocation.clearWatch(watchId);
         isTracking = false;
-        btn.textContent = "Start Tracking";
+        btn.textContent = "Want Your Chainage Click Me";
         btn.className = "btn btn-primary";
         document.getElementById("sectionCard").style.display = "none";
     } else {
@@ -148,8 +151,8 @@ function toggleTracking() {
         btn.textContent = "Stop Tracking";
         btn.className = "btn btn-stop";
         watchId = navigator.geolocation.watchPosition(pos => {
-            updateUI(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
-        }, err => alert("GPS Error"), {enableHighAccuracy: true});
+            processGPS(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+        }, err => alert("Check GPS Permissions"), {enableHighAccuracy: true});
     }
 }
 </script>
