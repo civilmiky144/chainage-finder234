@@ -38,18 +38,19 @@ header {
 .btn-camera { background: #374151; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
 .btn-pdf { background: var(--bppt-green); color: white; margin-top: 10px; }
 
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
-.modal-content { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 20px; }
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+.modal-content { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 25px; }
+.modal-h2 { font-size: 18px; margin-bottom: 20px; color: var(--bppt-blue); text-align: center; font-weight: 800; }
 .side-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
 .side-btn { padding: 10px; border: 2px solid #ddd; border-radius: 10px; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center;}
 .side-btn.active { border-color: var(--bppt-blue); background: #eef2ff; color: var(--bppt-blue); }
-.note-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
+.input-field { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; font-size: 14px; }
 
 footer { padding: 12px; background: white; text-align: center; border-top: 1px solid #e5e7eb; font-size: 11px; }
 #cameraInput, #canvasHelper { display: none; }
 </style>
 </head>
-<body>
+<body onload="checkUser()">
 
 <header>
     <img src="1000678935.png" alt="Logo" class="logo" id="mainLogo">
@@ -76,31 +77,111 @@ footer { padding: 12px; background: white; text-align: center; border-top: 1px s
     <button class="btn btn-pdf" id="btnSummary" onclick="generatePDF()">📄 Generate Visit Summary</button>
 </div>
 
+<div class="modal" id="userModal">
+    <div class="modal-content">
+        <h2 class="modal-h2">User Profile Setup</h2>
+        <input type="text" class="input-field" id="userName" placeholder="Full Name">
+        <input type="text" class="input-field" id="userDesig" placeholder="Designation (e.g. Sr. Manager)">
+        <button class="btn btn-primary" onclick="saveUser()">Save & Start</button>
+    </div>
+</div>
+
 <div class="modal" id="annotationModal">
     <div class="modal-content">
-        <h2 style="font-size:16px; margin-bottom:15px; text-align:center;">Add Site Details</h2>
+        <h2 class="modal-h2">Site Observation</h2>
         <div class="side-selector">
             <div class="side-btn" onclick="selectSide('LHS', this)">LHS</div>
             <div class="side-btn" onclick="selectSide('RHS', this)">RHS</div>
             <div class="side-btn" onclick="selectSide('Median', this)">Median</div>
         </div>
-        <input type="text" class="note-input" id="customNote" placeholder="Enter note (e.g. Crack in BC)">
+        <input type="text" class="input-field" id="customNote" placeholder="Enter note (e.g. Pothole)">
         <button class="btn btn-primary" onclick="finishImageProcessing()">Save & Download</button>
     </div>
 </div>
 
-<footer>Prepared by - <strong>Mukesh Kumar Kollepara</strong> (Sr.Manager)</footer>
+<footer id="appFooter">Prepared by - --</footer>
 <canvas id="canvasHelper"></canvas>
 
 <script>
-// --- PASTE FULL 4889 POINTS HERE ---
-const CHAIN_PTS=[ ["0+000",26.0617792,74.2991350], ["244+354",24.7800582,73.0298757] ];
+// --- YOUR COORDINATE LIST START ---
+const CHAIN_PTS=[
+["0+000",26.0617792,74.2991350],
+["0+050",26.0619805,74.2986852],
+// ... PASTE YOUR REMAINING 4889 POINTS HERE ...
+["244+354",24.7800582,73.0298757]
+];
+// --- YOUR COORDINATE LIST END ---
 
-let isTracking = false, watchId = null, currentCH = "--+---", currentLat = "", currentLon = "", selectedSide = "", pendingImageData = null;
-let visitLogs = []; // Stores data for the report
+let isTracking = false, watchId = null, currentCH = "--+---", currentLat = "0", currentLon = "0", selectedSide = "N/A", pendingImageData = null;
+let visitLogs = [];
+let userProfile = { name: "User", desig: "Engineer" };
 
+// USER LOGIC
+function checkUser() {
+    const saved = localStorage.getItem("bpptpl_user");
+    if(saved) { userProfile = JSON.parse(saved); updateFooter(); } 
+    else { document.getElementById("userModal").style.display = "flex"; }
+}
+function saveUser() {
+    userProfile.name = document.getElementById("userName").value;
+    userProfile.desig = document.getElementById("userDesig").value;
+    if(!userProfile.name) return alert("Enter Name");
+    localStorage.setItem("bpptpl_user", JSON.stringify(userProfile));
+    document.getElementById("userModal").style.display = "none";
+    updateFooter();
+}
+function updateFooter() { document.getElementById("appFooter").innerHTML = `Prepared by - <strong>${userProfile.name}</strong> (${userProfile.desig})`; }
+
+// MATHEMATICAL DISTANCE LOGIC (FIXED)
+function distM(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function findNearest(lat, lon) {
+    let minD = Infinity;
+    let nearestTag = "--+---";
+    for (let i = 0; i < CHAIN_PTS.length; i++) {
+        let d = distM(lat, lon, CHAIN_PTS[i][1], CHAIN_PTS[i][2]);
+        if (d < minD) { minD = d; nearestTag = CHAIN_PTS[i][0]; }
+    }
+    return { tag: nearestTag, dist: minD };
+}
+
+function toggleTracking() {
+    const btn = document.getElementById("btnTrack");
+    if (isTracking) {
+        navigator.geolocation.clearWatch(watchId); isTracking = false;
+        btn.textContent = "Want Your Chainage Click Me";
+        btn.className = "btn btn-primary";
+        document.getElementById("btnCamera").disabled = true;
+    } else {
+        isTracking = true;
+        btn.textContent = "Stop Tracking";
+        btn.className = "btn btn-stop";
+        document.getElementById("btnCamera").disabled = false;
+        watchId = navigator.geolocation.watchPosition(pos => {
+            currentLat = pos.coords.latitude.toFixed(6);
+            currentLon = pos.coords.longitude.toFixed(6);
+            const res = findNearest(pos.coords.latitude, pos.coords.longitude);
+            currentCH = res.tag;
+            document.getElementById("chValue").textContent = res.tag;
+            document.getElementById("infoLat").textContent = currentLat;
+            document.getElementById("infoLon").textContent = currentLon;
+        }, err => alert("GPS Error: " + err.message), {enableHighAccuracy: true});
+    }
+}
+
+// CAMERA & PDF LOGIC
 function triggerCamera() { document.getElementById("cameraInput").click(); }
-
+function selectSide(side, el) { 
+    selectedSide = side; 
+    document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+}
 function openAnnotationModal(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -109,37 +190,28 @@ function openAnnotationModal(event) {
     reader.readAsDataURL(file);
 }
 
-function selectSide(side, el) {
-    selectedSide = side;
-    document.querySelectorAll('.side-btn').forEach(btn => btn.classList.remove('active'));
-    el.classList.add('active');
-}
-
 function finishImageProcessing() {
     const note = document.getElementById("customNote").value || "N/A";
-    visitLogs.push({ ch: currentCH, side: selectedSide, note: note, lat: currentLat, lon: currentLon, time: new Date().toLocaleTimeString() });
-    
+    const ts = new Date().toLocaleString();
+    visitLogs.push({ ch: currentCH, side: selectedSide, note: note, lat: currentLat, lon: currentLon, time: ts });
     const img = new Image();
     img.onload = function() {
         const canvas = document.getElementById("canvasHelper");
         const ctx = canvas.getContext("2d");
         canvas.width = img.width; canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
-
-        const fSize = Math.floor(canvas.width / 28);
-        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-        ctx.fillRect(0, canvas.height - (fSize * 5), canvas.width, fSize * 5);
-        ctx.fillStyle = "white"; ctx.font = `bold ${fSize}px Arial`;
-        ctx.fillText(`CH: ${currentCH} (${selectedSide})`, 30, canvas.height - (fSize * 3.2));
-        ctx.font = `${fSize * 0.8}px Arial`;
-        ctx.fillText(`Note: ${note}`, 30, canvas.height - (fSize * 2.1));
-        ctx.fillText(`GPS: ${currentLat}, ${currentLon}`, 30, canvas.height - (fSize * 1.1));
-
-        const link = document.createElement('a');
-        link.download = `BPPTPL_${currentCH}_${selectedSide}.jpg`;
-        link.href = canvas.toDataURL("image/jpeg", 0.8);
-        link.click();
-        
+        const f = Math.floor(canvas.width / 25);
+        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, canvas.height-(f*5.5), canvas.width, f*5.5);
+        ctx.fillStyle = "white"; ctx.font = `bold ${f}px Arial`;
+        ctx.fillText(`CH: ${currentCH} (${selectedSide})`, 30, canvas.height-(f*3.8));
+        ctx.font = `${f*0.7}px Arial`;
+        ctx.fillText(`Note: ${note} | GPS: ${currentLat}, ${currentLon}`, 30, canvas.height-(f*2.4));
+        ctx.fillText(`By: ${userProfile.name} | ${ts}`, 30, canvas.height-(f*1.0));
+        const logoImg = document.getElementById("mainLogo");
+        const lW = canvas.width * 0.12; const lH = (logoImg.naturalHeight / logoImg.naturalWidth) * lW;
+        ctx.drawImage(logoImg, canvas.width - lW - 30, 30, lW, lH);
+        const link = document.createElement('a'); link.download = `Site_${currentCH}.jpg`;
+        link.href = canvas.toDataURL("image/jpeg", 0.8); link.click();
         document.getElementById("annotationModal").style.display = "none";
         document.getElementById("customNote").value = "";
     };
@@ -147,48 +219,19 @@ function finishImageProcessing() {
 }
 
 function generatePDF() {
-    if (visitLogs.length === 0) { alert("No photos captured yet!"); return; }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(18); doc.setTextColor(0, 74, 153);
-    doc.text("BPPTPL SITE VISIT SUMMARY", 14, 20);
-    doc.setFontSize(10); doc.setTextColor(100);
-    doc.text(`Prepared by: Mukesh Kumar Kollepara | Date: ${new Date().toLocaleDateString()}`, 14, 28);
-    
+    if (visitLogs.length === 0) return alert("Capture photos first!");
+    const { jsPDF } = window.jspdf; const doc = new jsPDF();
+    doc.setFontSize(18); doc.text("BPPTPL SITE VISIT SUMMARY", 14, 20);
+    doc.setFontSize(10); doc.text(`By: ${userProfile.name} | Date: ${new Date().toLocaleDateString()}`, 14, 28);
     let y = 40;
-    doc.setFontSize(11); doc.setTextColor(0);
     visitLogs.forEach((log, i) => {
         if (y > 270) { doc.addPage(); y = 20; }
-        doc.text(`${i+1}. Chainage: ${log.ch} (${log.side}) - ${log.time}`, 14, y);
-        doc.text(`   Note: ${log.note}`, 14, y + 5);
-        doc.text(`   GPS: ${log.lat}, ${log.lon}`, 14, y + 10);
+        doc.setFont(undefined, 'bold'); doc.text(`${i+1}. CH: ${log.ch} (${log.side})`, 14, y);
+        doc.setFont(undefined, 'normal'); doc.text(`Note: ${log.note}`, 14, y+6);
+        doc.text(`GPS: ${log.lat}, ${log.lon} | Time: ${log.time}`, 14, y+11);
         y += 20;
     });
-    doc.save(`Visit_Summary_${new Date().toLocaleDateString()}.pdf`);
-}
-
-function toggleTracking() {
-    if (isTracking) {
-        navigator.geolocation.clearWatch(watchId); isTracking = false;
-        document.getElementById("btnTrack").className = "btn btn-primary";
-        document.getElementById("btnCamera").disabled = true;
-    } else {
-        isTracking = true;
-        document.getElementById("btnTrack").className = "btn btn-stop";
-        document.getElementById("btnTrack").textContent = "Stop Tracking";
-        document.getElementById("btnCamera").disabled = false;
-        watchId = navigator.geolocation.watchPosition(pos => {
-            currentLat = pos.coords.latitude.toFixed(6); currentLon = pos.coords.longitude.toFixed(6);
-            let minD = Infinity;
-            for (let pt of CHAIN_PTS) {
-                let d = Math.sqrt((pos.coords.latitude-pt[1])**2 + (pos.coords.longitude-pt[2])**2);
-                if (d < minD) { minD = d; currentCH = pt[0]; }
-            }
-            document.getElementById("chValue").textContent = currentCH;
-            document.getElementById("infoLat").textContent = currentLat;
-            document.getElementById("infoLon").textContent = currentLon;
-        }, null, {enableHighAccuracy: true});
-    }
+    doc.save(`${userProfile.name}_Report.pdf`);
 }
 </script>
 </body>
